@@ -1,0 +1,32 @@
+services:
+    indexerStorageElasticaQueryStringBuilder:
+        class: Phlexible\IndexerStorageElasticaComponent\QueryStringBuilder\QueryStringBuilder
+        arguments: ["@indexerDocumentFactory"]
+
+    indexerStorageElasticaSearchParametersBuilder:
+        class: Phlexible\IndexerStorageElasticaComponent\SearchParametersBuilder\SearchParametersBuilder
+        arguments: ["@indexerStorageElasticaQueryStringBuilder"]
+
+    indexerStorageElasticaResultRenderer:
+        class: Phlexible\IndexerStorageElasticaComponent\ResultRenderer\ResultRenderer
+        arguments: ["@indexerDocumentFactory"]
+
+    indexerStorageElasticaAdapter:
+        class: Phlexible\IndexerStorageElasticaComponent\ElasticsearchStorageAdapter
+        arguments:
+            - "@elasticaClient"
+            - "@indexerStorageElasticaSearchParametersBuilder"
+            - "@indexerStorageElasticaResultRenderer"
+
+    indexerStorageElastica:
+        class: Phlexible\IndexerComponent\Storage\Storage
+        arguments: ["@dispatcher", "@indexerStorageElasticaAdapter"]
+        tags:
+            - ["indexer.storage"]
+
+    # problem checks
+    indexerStorageElasticaServiceCheck:
+        class: Phlexible\IndexerStorageElasticaComponent\ProblemChecker\ServiceChecker
+        arguments: ["@elasticaClient"]
+        tags:
+            - ["problem.checker"]
