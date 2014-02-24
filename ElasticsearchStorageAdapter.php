@@ -174,6 +174,7 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
             $data[$key] = $document->getValue($key);
         }
 
+        echo $document->getIdentifier().PHP_EOL;
         return $doc = new \Elastica\Document($document->getIdentifier(), $data, 'test1', 'test2');
     }
     /**
