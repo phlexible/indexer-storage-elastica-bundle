@@ -15,7 +15,7 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "https://packages.brainbits.net/phlexible/"
+            "url": "https://packages.brainbits.net/phlexible-components/"
         }
     ],
     "minimum-stability": "stable"

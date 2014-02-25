@@ -12,7 +12,6 @@ use Elastica\Client;
 use Phlexible\IndexerComponent\Document\DocumentInterface;
 use Phlexible\IndexerComponent\Query\QueryInterface;
 use Phlexible\IndexerComponent\Storage\AbstractStorageAdapter;
-use Phlexible\IndexerComponent\Storage\Optimizable;
 use Phlexible\IndexerStorageElasticaComponent\ResultRenderer\ResultRendererInterface;
 use Phlexible\IndexerStorageElasticaComponent\SearchParametersBuilder\SearchParametersBuilderInterface;
 
