@@ -35,8 +35,7 @@ class ServiceChecker implements ProblemCheckerInterface
     }
 
     /**
-     *
-     * @see MWF_Core_Problems_Check_Interface::check()
+     * @inheritDoc
      */
     public function check()
     {

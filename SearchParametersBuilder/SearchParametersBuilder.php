@@ -55,9 +55,6 @@ class SearchParametersBuilder implements SearchParametersBuilderInterface
      */
     private function buildParameters($queryString, $filterQueryString = '')
     {
-        \MWF_Log::debug(__METHOD__ . ' ' . $queryString);
-        \MWF_Log::debug(__METHOD__ . ' ' . $filterQueryString);
-
         $baseParams = array();
 
         // common parameters in this interface
