@@ -11,6 +11,7 @@ namespace Phlexible\IndexerStorageElasticaComponent\Container;
 use Phlexible\Container\ContainerBuilder;
 use Phlexible\Container\Extension\Extension;
 use Phlexible\Container\Loader\YamlFileLoader;
+use Symfony\Component\Config\FileLocator;
 
 /**
  * Elastica indexer storage extension
@@ -19,10 +20,13 @@ use Phlexible\Container\Loader\YamlFileLoader;
  */
 class IndexerStorageElasticaExtension extends Extension
 {
+    /**
+     * {@inheritdoc}
+     */
     public function load(ContainerBuilder $container, array $configs)
     {
-        $loader = new YamlFileLoader($container);
-        $loader->load(__DIR__ . '/../_config/services.yml');
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../_config'));
+        $loader->load('services.yml');
 
         $container->setParameters(
             array(
