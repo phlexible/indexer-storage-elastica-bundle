@@ -32,7 +32,7 @@ class SearchParametersBuilder implements SearchParametersBuilderInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function fromQuery(QueryInterface $query)
     {
@@ -43,7 +43,7 @@ class SearchParametersBuilder implements SearchParametersBuilderInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function fromString($queryString, $filterQueryString = '')
     {
@@ -51,7 +51,7 @@ class SearchParametersBuilder implements SearchParametersBuilderInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     private function buildParameters($queryString, $filterQueryString = '')
     {

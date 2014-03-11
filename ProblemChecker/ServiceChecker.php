@@ -35,19 +35,17 @@ class ServiceChecker implements ProblemCheckerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function check()
     {
         $problems = array();
 
-        $status = $this->client->getStatus();
-        $serverStatus = $status->getServerStatus();
+        try {
+            $status = $this->client->getStatus();
+            $serverStatus = $status->getServerStatus();
 
-        try
-        {
-            if (!isset($serverStatus['status']) || $serverStatus['status'] != 200)
-            {
+            if (!isset($serverStatus['status']) || $serverStatus['status'] != 200) {
                 $problem = new Problem();
                 $problem
                     ->setId('indexerstorageelastica_check_not_responding')
@@ -59,9 +57,7 @@ class ServiceChecker implements ProblemCheckerInterface
                 ;
                 $problems[] = $problem;
             }
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             $problem = new Problem();
             $problem
                 ->setId('indexerstorageelastica_check_exception')

@@ -32,7 +32,7 @@ class QueryStringBuilder implements QueryStringBuilderInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function buildQueryString(QueryInterface $query)
     {
@@ -95,7 +95,7 @@ class QueryStringBuilder implements QueryStringBuilderInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function buildFilterQueryString(QueryInterface $query)
     {
@@ -113,7 +113,7 @@ class QueryStringBuilder implements QueryStringBuilderInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function buildCombinedQueryString(QueryInterface $query)
     {
