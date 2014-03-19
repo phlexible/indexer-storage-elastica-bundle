@@ -34,5 +34,7 @@ class IndexerStorageElasticaExtension extends Extension
                 'indexerstorageelastica.asset.css_path'    => __DIR__ . '/../_styles',
             )
         );
+
+        $container->setAlias('indexerStorageDefault', 'indexerStorageElastica');
     }
 }

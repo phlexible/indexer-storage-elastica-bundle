@@ -8,14 +8,14 @@
 
 namespace Phlexible\IndexerStorageElasticaComponent;
 
-use Phlexible\Component\AbstractComponent;
+use Phlexible\Component\Component;
 
 /**
  * Elastica indexer storage component
  *
  * @author Marco Fischer <mf@brainbits.net>
  */
-class IndexerStorageElasticaComponent extends AbstractComponent
+class IndexerStorageElasticaComponent extends Component
 {
     public function __construct()
     {
