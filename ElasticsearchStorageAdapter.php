@@ -40,12 +40,12 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
     /**
      * @var string
      */
-    protected $resultClass = 'MWF_Core_Indexer_Document_Interface';
+    protected $resultClass = 'Phlexible\IndexerComponent\Document\DocumentInterface';
 
     /**
      * @var array
      */
-    protected $acceptQuery = array('MWF_Core_Indexer_Query_Interface');
+    protected $acceptQuery = array('Phlexible\IndexerComponent\Query\QueryInterface');
 
     /**
      * @var array

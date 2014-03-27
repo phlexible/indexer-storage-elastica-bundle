@@ -220,7 +220,7 @@ class QueryStringBuilder implements QueryStringBuilderInterface
         foreach ($query->getDocumentTypes() as $documentType)
         {
             $document = $this->documentFactory
-                ->factory('MWF_Core_Indexer_Document', $documentType);
+                ->factory('Phlexible\IndexerComponent\Document\Document', $documentType);
 
             foreach ($query->getFields() as $key)
             {
@@ -305,7 +305,7 @@ class QueryStringBuilder implements QueryStringBuilderInterface
         foreach ($documentTypes as $documentType)
         {
             $document = $this->documentFactory
-                ->factory('MWF_Core_Indexer_Document', $documentType);
+                ->factory('Phlexible\IndexerComponent\Document\Document', $documentType);
 
             if ($document->hasField($fieldName))
             {
