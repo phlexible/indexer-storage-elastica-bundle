@@ -1,21 +1,21 @@
 {
-    "name": "phlexible/indexer-storage-elastica-component",
-    "description": "phlexible.core indexer storage elastica component",
+    "name": "phlexible/indexer-storage-elastica-bundle",
+    "description": "phlexible indexer storage elastica bundle",
     "license": "proprietary",
     "autoload": {
         "psr-4": {
-            "Phlexible\\IndexerStorageElasticaComponent\\": ""
+            "Phlexible\\IndexerStorageElasticaBundle\\": ""
         }
     },
     "require": {
         "php": ">=5.3.0",
-        "phlexible/indexer-component": "*",
-        "phlexible/elastica-component": "*"
+        "phlexible/indexer-bundle": "*",
+        "phlexible/elastica-bundle": "*"
     },
     "repositories": [
         {
             "type": "composer",
-            "url": "https://packages.brainbits.net/phlexible-components/"
+            "url": "https://packages.brainbits.net/phlexible-bundles/"
         }
     ],
     "minimum-stability": "stable"
