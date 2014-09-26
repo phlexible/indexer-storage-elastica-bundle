@@ -6,7 +6,7 @@
  * @license   proprietary
  */
 
-namespace Phlexible\Bundle\IndexerStorageElasticaBundle\QueryStringBuilder;
+namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\QueryStringBuilder;
 
 use Phlexible\Bundle\IndexerBundle\Query\Query\QueryInterface;
 

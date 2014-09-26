@@ -1,18 +1,18 @@
 services:
     phlexible_indexer_storage_elastica.query_string_builder:
-        class: Phlexible\Bundle\IndexerStorageElasticaBundle\QueryStringBuilder\QueryStringBuilder
+        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\QueryStringBuilder\QueryStringBuilder
         arguments: [@phlexible_indexer.document_factory]
 
     phlexible_indexer_storage_elastica.search_parameters_builder:
-        class: Phlexible\Bundle\IndexerStorageElasticaBundle\SearchParametersBuilder\SearchParametersBuilder
+        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\SearchParametersBuilder\SearchParametersBuilder
         arguments: [@phlexible_indexer_storage_elastica.query_string_builder]
 
     phlexible_indexer_storage_elastica.result_renderer:
-        class: Phlexible\Bundle\IndexerStorageElasticaBundle\ResultRenderer\ResultRenderer
+        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ResultRenderer\ResultRenderer
         arguments: [@phlexible_indexer.document_factory]
 
     phlexible_indexer_storage_elastica.adapter:
-        class: Phlexible\Bundle\IndexerStorageElasticaBundle\ElasticsearchStorageAdapter
+        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticsearchStorageAdapter
         arguments:
             - @phlexible_elastica.default_client
             - @phlexible_indexer_storage_elastica.search_parameters_builder
@@ -22,11 +22,11 @@ services:
         class: Phlexible\Bundle\IndexerBundle\Storage\Storage
         arguments: [@event_dispatcher, @phlexible_indexer_storage_elastica.adapter]
         tags:
-            - [phlexible_indexer.storage]
+            - {name: phlexible_indexer.storage}
 
     # problem checks
     phlexible_indexer_storage_elastica.service_check:
         class: Phlexible\Bundle\IndexerStorageElasticaBundle\ProblemChecker\ServiceChecker
         arguments: [@phlexible_elastica.default_client]
         tags:
-            - [phlexible_problem.checker]
+            - {name: phlexible_problem.checker}

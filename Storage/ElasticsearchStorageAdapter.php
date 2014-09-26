@@ -6,31 +6,32 @@
  * @license   proprietary
  */
 
-namespace Phlexible\Bundle\IndexerStorageElasticaBundle;
+namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage;
 
 use Elastica\Client;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
-use Phlexible\Bundle\IndexerBundle\Query\QueryInterface;
-use Phlexible\Bundle\IndexerBundle\Storage\AbstractStorageAdapter;
-use Phlexible\Bundle\IndexerStorageElasticaBundle\ResultRenderer\ResultRendererInterface;
-use Phlexible\Bundle\IndexerStorageElasticaBundle\SearchParametersBuilder\SearchParametersBuilderInterface;
+use Phlexible\Bundle\IndexerBundle\Query\Query\QueryInterface;
+use Phlexible\Bundle\IndexerBundle\Storage\SelectQuery\SelectQuery;
+use Phlexible\Bundle\IndexerBundle\Storage\StorageAdapterInterface;
+use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ResultRenderer\ResultRendererInterface;
+use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\SearchParametersBuilder\SearchParametersBuilderInterface;
 
 /**
  * Elasticsearch storage adapter
  *
  * @author Marco Fischer <mf@brainbits.net>
  */
-class ElasticsearchStorageAdapter extends AbstractStorageAdapter
+class ElasticsearchStorageAdapter implements StorageAdapterInterface
 {
     /**
      * @var SearchParametersBuilderInterface
      */
-    private $searchParametersBuilder = null;
+    private $searchParametersBuilder;
 
     /**
      * @var ResultRendererInterface
      */
-    private $resultRenderer = null;
+    private $resultRenderer;
 
     /**
      * @var string
@@ -71,15 +72,24 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
         $this->resultRenderer = $resultRenderer;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getId()
     {
         return 'storage-elastica';
     }
 
     /**
-     * Return connection parameters as string
-     *
-     * @return string
+     * {@inheritdoc}
+     */
+    public function getLabel()
+    {
+        return 'Elasticsearch';
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getConnectionString()
     {
@@ -87,12 +97,9 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
     }
 
     /**
-     * Return documents by query
-     *
-     * @param QueryInterface $query
-     * @return array
+     * {@inheritdoc}
      */
-    public function getByQuery(QueryInterface $query)
+    public function getByQuery(SelectQuery $query)
     {
         $result =  $this->resultRenderer->renderToResult($this->_searchByQuery($query));
 
@@ -100,9 +107,7 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
     }
 
     /**
-     * Return all documents
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function getAll()
     {
@@ -112,10 +117,7 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
     }
 
     /**
-     * Return document by identifier
-     *
-     * @param string $identifier
-     * @return DocumentInterface
+     * {@inheritdoc}
      */
     public function getByIdentifier($identifier)
     {
@@ -133,17 +135,18 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
     {
         $parameters = $this->searchParametersBuilder->fromQuery($query);
 
-        return $this->driver->search($parameters);
+        return $this->client->search($parameters);
     }
 
-    protected function _search($queryString, $filterQueryString = '')
+    private function _search($queryString, $filterQueryString = '')
     {
         $parameters = $this->searchParametersBuilder->fromString($queryString, $filterQueryString);
 
-        return $this->driver->search($parameters);
+        return $this->client->search($parameters);
     }
+
     /**
-     * @param DocumentInterface $document
+     * {@inheritdoc}
      */
     public function addDocument(DocumentInterface $document)
     {
@@ -153,7 +156,7 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
         $this->client->addDocuments($documents);
     }
 
-    protected function indexerDocumentToElasticaDocument(DocumentInterface $document)
+    private function indexerDocumentToElasticaDocument(DocumentInterface $document)
     {
         $fields = $document->getFields();
 
@@ -173,11 +176,11 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
             $data[$key] = $document->getValue($key);
         }
 
-        echo $document->getIdentifier().PHP_EOL;
         return $doc = new \Elastica\Document($document->getIdentifier(), $data, 'test1', 'test2');
     }
+
     /**
-     * @param DocumentInterface $document
+     * {@inheritdoc}
      */
     public function updateDocument(DocumentInterface $document)
     {
@@ -185,7 +188,23 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
     }
 
     /**
-     * @param string $identifier
+     * {@inheritdoc}
+     */
+    public function removeDocument(DocumentInterface $document)
+    {
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function removeByClass($class)
+    {
+
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function removeByIdentifier($identifier = null)
     {
@@ -193,28 +212,42 @@ class ElasticsearchStorageAdapter extends AbstractStorageAdapter
     }
 
     /**
-     * @param QueryInterface $query
+     * {@inheritdoc}
      */
-    public function removeByQuery(QueryInterface $query)
+    public function removeByQuery(SelectQuery $query)
     {
-        $this->driver->deleteByQuery($query);
-    }
-
-    public function removeAll()
-    {
-        $this->driver->deleteAll();
+        $this->client->deleteByQuery($query);
     }
 
     /**
-     * @return integer
+     * {@inheritdoc}
      */
-    public function getPreference()
+    public function removeAll()
     {
-        return self::PREFERENCE_FIRST_COICE;
+        $this->client->deleteAll();
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function commit()
+    {
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function optimize()
+    {
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function isHealthy()
     {
-        return $this->driver->isHealthy();
+        return $this->client->isHealthy();
     }
 }
