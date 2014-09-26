@@ -11,10 +11,10 @@ namespace Phlexible\Bundle\IndexerStorageElasticaBundle;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
- * Elastica indexer storage component
+ * Elastica indexer storage bundle
  *
- * @author Marco Fischer <mf@brainbits.net>
+ * @author Stephan Wentz <sw@brainbits.net>
  */
-class IndexerStorageElasticaComponent extends Bundle
+class IndexerStorageElasticaBundle extends Bundle
 {
 }
