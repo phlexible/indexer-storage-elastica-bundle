@@ -15,6 +15,6 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
-class IndexerStorageElasticaBundle extends Bundle
+class PhlexibleIndexerStorageElasticaBundle extends Bundle
 {
 }
