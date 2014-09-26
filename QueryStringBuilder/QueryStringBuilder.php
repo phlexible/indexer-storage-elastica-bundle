@@ -6,10 +6,10 @@
  * @license   proprietary
  */
 
-namespace Phlexible\IndexerStorageElasticaComponent\QueryStringBuilder;
+namespace Phlexible\Bundle\IndexerStorageElasticaBundle\QueryStringBuilder;
 
-use Phlexible\IndexerComponent\Document\DocumentFactory;
-use Phlexible\IndexerComponent\Query\QueryInterface;
+use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
+use Phlexible\Bundle\IndexerBundle\Query\Query\QueryInterface;
 
 /**
  * Query string builder

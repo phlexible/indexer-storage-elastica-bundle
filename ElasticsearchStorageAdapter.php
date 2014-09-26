@@ -6,14 +6,14 @@
  * @license   proprietary
  */
 
-namespace Phlexible\IndexerStorageElasticaComponent;
+namespace Phlexible\Bundle\IndexerStorageElasticaBundle;
 
 use Elastica\Client;
-use Phlexible\IndexerComponent\Document\DocumentInterface;
-use Phlexible\IndexerComponent\Query\QueryInterface;
-use Phlexible\IndexerComponent\Storage\AbstractStorageAdapter;
-use Phlexible\IndexerStorageElasticaComponent\ResultRenderer\ResultRendererInterface;
-use Phlexible\IndexerStorageElasticaComponent\SearchParametersBuilder\SearchParametersBuilderInterface;
+use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
+use Phlexible\Bundle\IndexerBundle\Query\QueryInterface;
+use Phlexible\Bundle\IndexerBundle\Storage\AbstractStorageAdapter;
+use Phlexible\Bundle\IndexerStorageElasticaBundle\ResultRenderer\ResultRendererInterface;
+use Phlexible\Bundle\IndexerStorageElasticaBundle\SearchParametersBuilder\SearchParametersBuilderInterface;
 
 /**
  * Elasticsearch storage adapter

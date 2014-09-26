@@ -6,7 +6,7 @@
  * @license   proprietary
  */
 
-namespace Phlexible\IndexerStorageElasticaComponent\ResultRenderer;
+namespace Phlexible\Bundle\IndexerStorageElasticaBundle\ResultRenderer;
 
 /**
  * Result renderer interface

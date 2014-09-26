@@ -6,10 +6,10 @@
  * @license   proprietary
  */
 
-namespace Phlexible\IndexerStorageElasticaComponent\SearchParametersBuilder;
+namespace Phlexible\Bundle\IndexerStorageElasticaBundle\SearchParametersBuilder;
 
-use Phlexible\IndexerComponent\Query\QueryInterface;
-use Phlexible\IndexerStorageElasticaComponent\QueryStringBuilder\QueryStringBuilder;
+use Phlexible\Bundle\IndexerBundle\Query\Query\QueryInterface;
+use Phlexible\Bundle\IndexerStorageElasticaBundle\QueryStringBuilder\QueryStringBuilder;
 
 /**
  * Search parameters builder

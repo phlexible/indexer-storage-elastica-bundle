@@ -6,11 +6,11 @@
  * @license   proprietary
  */
 
-namespace Phlexible\IndexerStorageElasticaComponent\ProblemChecker;
+namespace Phlexible\Bundle\IndexerStorageElasticaBundle\ProblemChecker;
 
 use Elastica\Client;
-use Phlexible\ProblemsComponent\Entity\Problem;
-use Phlexible\ProblemsComponent\ProblemChecker\ProblemCheckerInterface;
+use Phlexible\Bundle\ProblemBundle\Entity\Problem;
+use Phlexible\Bundle\ProblemBundle\ProblemChecker\ProblemCheckerInterface;
 
 /**
  * Service check

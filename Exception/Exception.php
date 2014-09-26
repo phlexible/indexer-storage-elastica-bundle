@@ -6,7 +6,7 @@
  * @license   proprietary
  */
 
-namespace Phlexible\IndexerStorageElasticaComponent\Exception;
+namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Exception;
 
 /**
  * Base exception

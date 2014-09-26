@@ -6,9 +6,9 @@
  * @license   proprietary
  */
 
-namespace Phlexible\IndexerStorageElasticaComponent\ResultRenderer;
+namespace Phlexible\Bundle\IndexerStorageElasticaBundle\ResultRenderer;
 
-use Phlexible\IndexerComponent\Document\DocumentFactory;
+use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
 
 /**
  * Result renderer
