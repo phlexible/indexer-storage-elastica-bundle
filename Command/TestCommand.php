@@ -10,7 +10,10 @@ namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Command;
 
 use Phlexible\Bundle\IndexerBundle\Query\Facet\TermsFacet;
 use Phlexible\Bundle\IndexerBundle\Query\Filter\TermFilter;
+use Phlexible\Bundle\IndexerBundle\Query\Query\BoolQuery;
+use Phlexible\Bundle\IndexerBundle\Query\Query\FuzzyQuery;
 use Phlexible\Bundle\IndexerBundle\Query\Query\QueryString;
+use Phlexible\Bundle\IndexerBundle\Query\Query\TermQuery;
 use Phlexible\Bundle\IndexerBundle\Query\Suggest;
 use Phlexible\Bundle\IndexerBundle\Query\Suggest\TermSuggest;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
@@ -42,22 +45,33 @@ class TestCommand extends ContainerAwareCommand
     {
         $storage = $this->getContainer()->get('phlexible_indexer.storage.default');
 
-        $query = $storage->createQuery();
-        //$query->setQuery(new QueryString('Werbeprogramm'));
-
-        $facet = new TermsFacet('blubb');
+        $facet = new TermsFacet('tid');
         $facet->setField('tid');
-        $query->setFacets(array($facet));
 
         $filter = new TermFilter(array('elementtype' => 'faq'));
-        $query->setFilter($filter);
 
-        $suggestion = new TermSuggest('suggi', 'elementtype');
-        $suggest = new Suggest($suggestion);
-        $suggest->setGlobalText("antworte");
-        $query->setSuggest($suggest);
+        $suggestion1 = new TermSuggest('suggi1', '_all');
+        $suggestion1->setText('Imprssum');
+        $suggestion2 = new TermSuggest('suggi2', '_all');
+        $suggestion2->setText('Kntkt');
+        $suggest = new Suggest();
+        $suggest->addSuggestion($suggestion1);
+        $suggest->addSuggestion($suggestion2);
 
-        $result = $storage->query($query);
+        $q = $storage->createQuery();
+        $query = new QueryString('Lorem Hilfe');
+        $query->setDefaultOperator('AND');
+        $q->setQuery($query);
+        //$q->setQuery(new TermQuery(array('title' => 'impressu*')));
+        $query = new BoolQuery();
+        $query->addMust(new FuzzyQuery('content', 'lorem'));
+        $query->addMustNot(new FuzzyQuery('title', 'impressum'));
+        //$q->setQuery($query);
+        //$q->setFacets(array($facet));
+        //$q->setFilter($filter);
+        //$q->setSuggest($suggest);
+
+        $result = $storage->query($q);
 
         ldd($result);
 

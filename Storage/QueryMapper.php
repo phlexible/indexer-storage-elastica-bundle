@@ -98,6 +98,49 @@ class QueryMapper
             }
 
             return $elasticaQuery;
+        } elseif ($query instanceof Query\TermQuery) {
+            $elasticaQuery = new ElasticaQuery\Term();
+            foreach ($query->getParams() as $key => $value) {
+                $method = 'set' . ucfirst($key);
+                $elasticaQuery->$method($value);
+            }
+
+            return $elasticaQuery;
+        } elseif ($query instanceof Query\FuzzyQuery) {
+            $elasticaQuery = new ElasticaQuery\Fuzzy();
+            $field = $query->getParam('field');
+            $elasticaQuery->setField($field['fieldName'], $field['value']);
+            foreach ($field['options'] as $option => $value) {
+                $elasticaQuery->setFieldOption($option, $value);
+            }
+
+            return $elasticaQuery;
+        } elseif ($query instanceof Query\DismaxQuery) {
+            $elasticaQuery = new ElasticaQuery\Dismax();
+            foreach ($query->getQueries() as $query) {
+                $elasticaQuery->addQuery($this->mapQuery($query));
+            }
+            $elasticaQuery->addQuery($query);
+            foreach ($query->getParams() as $key => $value) {
+                $method = 'set' . ucfirst($key);
+                $elasticaQuery->$method($value);
+            }
+
+            return $elasticaQuery;
+        } elseif ($query instanceof Query\BoolQuery) {
+            $elasticaQuery = new ElasticaQuery\Bool();
+            foreach ($query->getQueries() as $type => $queries) {
+                foreach ($queries as $subQuery) {
+                    $method = 'add' . ucfirst($type);
+                    $elasticaQuery->$method($this->mapQuery($subQuery));
+                }
+            }
+            foreach ($query->getParams() as $key => $value) {
+                $method = 'set' . ucfirst($key);
+                $elasticaQuery->$method($value);
+            }
+
+            return $elasticaQuery;
         }
 
         return null;

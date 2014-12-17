@@ -57,7 +57,7 @@ class InitCommand extends ContainerAwareCommand
             foreach ($document->getFields() as $name => $config) {
                 $type = 'string';
                 $index = 'analyzed';
-                $store = false;
+                $store = true;
 
                 if (isset($config['indexed']) && empty($config['indexed'])) {
                     $index = 'not_analyzed';
@@ -118,7 +118,12 @@ class InitCommand extends ContainerAwareCommand
                                 'type' => 'custom',
                                 'tokenizer' => 'standard',
                                 'filter' => array('standard', 'lowercase', 'mySnowball')
-                            )
+                            ),
+                            'whitespaceAnalyzer' => array(
+                                'type' => 'custom',
+                                'tokenizer' => 'whitespace',
+                                'filter' => array('lowercase', 'asciifolding'),
+                            ),
                         ),
                         'filter' => array(
                             'mySnowball' => array(
@@ -126,7 +131,7 @@ class InitCommand extends ContainerAwareCommand
                                 'language' => 'German'
                             )
                         )
-                    )
+                    ),
                 ),
                 true
             );
@@ -137,8 +142,8 @@ class InitCommand extends ContainerAwareCommand
                 $type = $index->getType($name);
                 $mapping = new Mapping();
                 $mapping->setType($type);
-                $mapping->setParam('index_analyzer', 'indexAnalyzer');
-                $mapping->setParam('search_analyzer', 'searchAnalyzer');
+                //$mapping->setParam('index_analyzer', 'indexAnalyzer');
+                //$mapping->setParam('search_analyzer', 'searchAnalyzer');
                 $mapping->setProperties($fields);
                 $mapping->send();
 
