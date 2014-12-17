@@ -9,67 +9,43 @@
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage;
 
 use Elastica\Client;
+use Elastica\Document as ElasticaDocument;
+use Elastica\Filter\Ids;
+use Elastica\Filter\Term;
+use Elastica\Index;
+use Elastica\Query as ElasticaQuery;
+use Elastica\ResultSet;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
-use Phlexible\Bundle\IndexerBundle\Query\Query\QueryInterface;
-use Phlexible\Bundle\IndexerBundle\Storage\SelectQuery\SelectQuery;
+use Phlexible\Bundle\IndexerBundle\Query\Query;
+use Phlexible\Bundle\IndexerBundle\Storage\Optimizable;
 use Phlexible\Bundle\IndexerBundle\Storage\StorageAdapterInterface;
-use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ResultRenderer\ResultRendererInterface;
-use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\SearchParametersBuilder\SearchParametersBuilderInterface;
 
 /**
  * Elasticsearch storage adapter
  *
  * @author Marco Fischer <mf@brainbits.net>
  */
-class ElasticsearchStorageAdapter implements StorageAdapterInterface
+class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizable
 {
-    /**
-     * @var SearchParametersBuilderInterface
-     */
-    private $searchParametersBuilder;
-
-    /**
-     * @var ResultRendererInterface
-     */
-    private $resultRenderer;
-
-    /**
-     * @var string
-     */
-    protected $label = 'Elasticsearch storage adapter';
-
-    /**
-     * @var string
-     */
-    protected $resultClass = 'Phlexible\IndexerComponent\Document\DocumentInterface';
-
-    /**
-     * @var array
-     */
-    protected $acceptQuery = array('Phlexible\IndexerComponent\Query\QueryInterface');
-
-    /**
-     * @var array
-     */
-    protected $acceptStorage = array();
-
     /**
      * @var Client
      */
-    protected $client;
+    private $client;
 
     /**
-     * @param Client                           $client
-     * @param SearchParametersBuilderInterface $searchParametersBuilder
-     * @param ResultRendererInterface          $resultRenderer
+     * @var QueryMapper
+     */
+    private $queryMapper;
+
+    /**
+     * @param Client      $client
+     * @param QueryMapper $queryMapper
      */
     public function __construct(Client $client,
-                                SearchParametersBuilderInterface $searchParametersBuilder,
-                                ResultRendererInterface $resultRenderer)
+                                QueryMapper $queryMapper)
     {
         $this->client = $client;
-        $this->searchParametersBuilder = $searchParametersBuilder;
-        $this->resultRenderer = $resultRenderer;
+        $this->queryMapper = $queryMapper;
     }
 
     /**
@@ -93,17 +69,19 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function getConnectionString()
     {
-        return $this->client->getConnection()->getHost();
+        return $this->client->getConnection()->getHost() . ':' . $this->client->getConnection()->getPort();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getByQuery(SelectQuery $query)
+    public function getByQuery(Query $query)
     {
-        $result =  $this->resultRenderer->renderToResult($this->_searchByQuery($query));
+        $elasticaQuery = $this->mapElasticaQuery($query);
 
-        return $result;
+        $resultSet = $this->getIndex()->search($elasticaQuery);
+
+        return $this->mapElasticaResultSet($resultSet);
     }
 
     /**
@@ -111,9 +89,9 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function getAll()
     {
-        $result = $this->resultRenderer->renderToResult($this->_search('*:*'));
+        $resultSet = $this->getIndex()->search(array());
 
-        return $result;
+        return $this->mapElasticaResultSet($resultSet);
     }
 
     /**
@@ -121,28 +99,13 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function getByIdentifier($identifier)
     {
-        $result = $this->resultRenderer->renderToResult($this->_search('_identifier_:' . $identifier));
+        $query = new ElasticaQuery();
+        $filter = new Ids();
+        $filter->addId($identifier);
+        $query->setPostFilter($filter);
+        $resultSet = $this->getIndex()->search($query);
 
-        if (count($result) == 1)
-        {
-            return $result[0];
-        }
-
-        return null;
-    }
-
-    private function _searchByQuery(QueryInterface $query)
-    {
-        $parameters = $this->searchParametersBuilder->fromQuery($query);
-
-        return $this->client->search($parameters);
-    }
-
-    private function _search($queryString, $filterQueryString = '')
-    {
-        $parameters = $this->searchParametersBuilder->fromString($queryString, $filterQueryString);
-
-        return $this->client->search($parameters);
+        return $this->mapElasticaResultSet($resultSet, true);
     }
 
     /**
@@ -150,33 +113,7 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function addDocument(DocumentInterface $document)
     {
-        $documents = array(
-            $this->indexerDocumentToElasticaDocument($document)
-        );
-        $this->client->addDocuments($documents);
-    }
-
-    private function indexerDocumentToElasticaDocument(DocumentInterface $document)
-    {
-        $fields = $document->getFields();
-
-        $data = array();
-        foreach ($fields as $key => $config)
-        {
-            if (!empty($config[DocumentInterface::CONFIG_READONLY]))
-            {
-                continue;
-            }
-
-            if (!$document->hasValue($key))
-            {
-                continue;
-            }
-
-            $data[$key] = $document->getValue($key);
-        }
-
-        return $doc = new \Elastica\Document($document->getIdentifier(), $data, 'test1', 'test2');
+        $this->getIndex()->addDocuments(array($this->mapElasticaDocument($document)));
     }
 
     /**
@@ -184,7 +121,7 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function updateDocument(DocumentInterface $document)
     {
-        $this->addDocument($document);
+        $this->getIndex()->updateDocuments(array($this->mapElasticaDocument($document)));
     }
 
     /**
@@ -192,7 +129,7 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function removeDocument(DocumentInterface $document)
     {
-
+        $this->getIndex()->deleteDocuments(array($this->mapElasticaDocument($document)));
     }
 
     /**
@@ -200,7 +137,13 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function removeByClass($class)
     {
+        $query = new ElasticaQuery();
+        $filter = new Term();
+        $filter->setTerm('_documentclass', $class);
+        $query->setPostFilter($filter);
+        $result = $this->getIndex()->search($query);
 
+        $this->getIndex()->deleteDocuments($result);
     }
 
     /**
@@ -208,15 +151,19 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function removeByIdentifier($identifier = null)
     {
-        $this->client->deleteIds(array($identifier), 'test1', 'test2');
+        $document = $this->getByIdentifier($identifier);
+
+        $this->client->deleteIds(array($identifier), $this->getIndexName(), $document->getName());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function removeByQuery(SelectQuery $query)
+    public function removeByQuery(Query $query)
     {
-        $this->client->deleteByQuery($query);
+        $documents = $this->getByQuery($query);
+
+        $this->getIndex()->deleteDocuments($documents);
     }
 
     /**
@@ -224,7 +171,7 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function removeAll()
     {
-        $this->client->deleteAll();
+        $this->getIndex()->deleteDocuments(array());
     }
 
     /**
@@ -232,7 +179,7 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function commit()
     {
-
+        $this->getIndex()->flush(true);
     }
 
     /**
@@ -240,7 +187,7 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function optimize()
     {
-
+        $this->getIndex()->optimize();
     }
 
     /**
@@ -248,6 +195,95 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface
      */
     public function isHealthy()
     {
-        return $this->client->isHealthy();
+        $serverStatus = $this->client->getStatus()->getServerStatus();
+
+        return $serverStatus['status'] == 200;
+    }
+
+    /**
+     * @return string
+     */
+    private function getIndexName()
+    {
+        return 'test2';
+    }
+
+    /**
+     * @return Index
+     */
+    private function getIndex()
+    {
+        return $this->client->getIndex($this->getIndexName());
+    }
+
+    /**
+     * @param DocumentInterface $document
+     *
+     * @return ElasticaDocument
+     */
+    private function mapElasticaDocument(DocumentInterface $document)
+    {
+        $fields = $document->getFields();
+
+        $data = array();
+        foreach ($fields as $key => $config) {
+            if (!empty($config[DocumentInterface::CONFIG_READONLY])) {
+                continue;
+            }
+
+            if (!$document->hasValue($key)) {
+                continue;
+            }
+
+            $data[$key] = $document->getValue($key);
+        }
+
+        return new ElasticaDocument($document->getIdentifier(), $data, $document->getName(), $this->getIndexName());
+    }
+
+    /**
+     * @param Query $query
+     *
+     * @return ElasticaQuery
+     */
+    private function mapElasticaQuery(Query $query)
+    {
+        return $this->queryMapper->map($query);
+    }
+
+    /**
+     * @param ResultSet $resultSet
+     * @param bool      $onlyFirst
+     *
+     * @return mixed
+     */
+    private function mapElasticaResultSet(ResultSet $resultSet, $onlyFirst = false)
+    {
+        if ($onlyFirst) {
+            return $resultSet->current();
+        }
+
+        $data = array(
+            'count'         => $resultSet->count(),
+            'countSuggests' => $resultSet->countSuggests(),
+            'maxScore'      => $resultSet->getMaxScore(),
+            'totalHits'     => $resultSet->getTotalHits(),
+            'totalTime'     => $resultSet->getTotalTime(),
+            'query'         => $resultSet->getQuery()->toArray(),
+        );
+        if ($resultSet->hasFacets()) {
+            $data['facets'] = $resultSet->getFacets();
+        }
+
+        if ($resultSet->hasSuggests()) {
+            $data['suggest'] = $resultSet->getSuggests();
+        }
+
+        $data['results'] = array();
+        foreach ($resultSet->getResults() as $result) {
+            $data['results'][] = $result->getData();
+        }
+
+        return $data;
     }
 }
