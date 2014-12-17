@@ -1,16 +1,4 @@
 services:
-    phlexible_indexer_storage_elastica.query_string_builder:
-        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\QueryStringBuilder\QueryStringBuilder
-        arguments: [@phlexible_indexer.document_factory]
-
-    phlexible_indexer_storage_elastica.search_parameters_builder:
-        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\SearchParametersBuilder\SearchParametersBuilder
-        arguments: [@phlexible_indexer_storage_elastica.query_string_builder]
-
-    phlexible_indexer_storage_elastica.result_renderer:
-        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ResultRenderer\ResultRenderer
-        arguments: [@phlexible_indexer.document_factory]
-
     phlexible_indexer_storage_elastica.query_mapper:
         class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\QueryMapper
 
