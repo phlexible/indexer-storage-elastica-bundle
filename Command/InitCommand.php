@@ -47,12 +47,19 @@ class InitCommand extends ContainerAwareCommand
             $document = $indexer->createDocument();
 
             $fields = array(
-                'id'              => array('type' => 'string', 'index' => 'analyzed', 'store' => true),
-                '_documentclass_' => array('type' => 'string', 'index' => 'not_analyzed', 'store' => true),
+                'id'              => array('name' => 'id', 'type' => 'string', 'index' => 'analyzed', 'store' => true),
+                '_documentclass_' => array('name' => '_documentclass_', 'type' => 'string', 'index' => 'not_analyzed', 'store' => true),
+                'autocomplete'    => array('name' => 'autocomplete', 'type' => 'string', 'analyzer' => 'autocomplete', 'store' => true, 'index' => 'analyzed'),
+                'did_you_mean'    => array('name' => 'did_you_mean', 'type' => 'string', 'analyzer' => 'didYouMean', 'store' => true, 'index' => 'analyzed'),
             );
 
             $output->writeln('Indexer: ' . $indexer->getLabel());
             $output->writeln('  Document: ' . $indexer->getDocumentClass());
+
+            foreach ($fields as $name => $field) {
+                $output->writeln('    ' . $name .':');
+                $output->writeln('     => ' . json_encode($field));
+            }
 
             foreach ($document->getFields() as $name => $config) {
                 $type = 'string';
@@ -81,9 +88,17 @@ class InitCommand extends ContainerAwareCommand
                 $field = array(
                     'name'  => $name,
                     'type'  => $type,
-                    'index' => $index,
-                    'store' => $store
                 );
+                if ($index !== null) {
+                    $field['index'] = $index;
+                }
+                if ($store !== null) {
+                    $field['store'] = $store;
+                }
+
+                if ($name === 'content' || $name === 'title') {
+                    $field['copy_to'] = array('autocomplete', 'did_you_mean');
+                }
 
                 if (isset($fields[$name]) && $fields[$name] !== $field) {
                     throw new \Exception("Conflict in field $name");
@@ -108,29 +123,41 @@ class InitCommand extends ContainerAwareCommand
                     //'number_of_shards' => 4,
                     //'number_of_replicas' => 1,
                     'analysis' => array(
-                        'analyzer' => array(
-                            'indexAnalyzer' => array(
-                                'type' => 'custom',
-                                'tokenizer' => 'standard',
-                                'filter' => array('lowercase', 'mySnowball')
+                        'filter' => array(
+                            'stemmer' => array(
+                                'type'     => 'stemmer',
+                                'language' => 'german',
                             ),
-                            'searchAnalyzer' => array(
-                                'type' => 'custom',
-                                'tokenizer' => 'standard',
-                                'filter' => array('standard', 'lowercase', 'mySnowball')
+                            'autocompleteFilter' => array(
+                                'type'             => 'shingle',
+                                'min_shingle_size' => 2,
+                                'max_shingle_size' => 5,
                             ),
-                            'whitespaceAnalyzer' => array(
-                                'type' => 'custom',
-                                'tokenizer' => 'whitespace',
-                                'filter' => array('lowercase', 'asciifolding'),
+                            'stopwords' => array(
+                                'type'      => 'stop',
+                                'stopwords' => '_german_'
                             ),
                         ),
-                        'filter' => array(
-                            'mySnowball' => array(
-                                'type' => 'snowball',
-                                'language' => 'German'
-                            )
-                        )
+                        'analyzer' => array(
+                            'didYouMean' => array(
+                                'type'        => 'custom',
+                                'tokenizer'   => 'standard',
+                                'filter'      => array('lowercase'),
+                                'char_filter' => array('html_strip'),
+                            ),
+                            'autocomplete' => array(
+                                'type'        => 'custom',
+                                'tokenizer'   => 'standard',
+                                'filter'      => array('lowercase', 'autocompleteFilter'),
+                                'char_filter' => array('html_strip')
+                            ),
+                            'default' => array(
+                                'type'        => 'custom',
+                                'tokenizer'   => 'standard',
+                                'filter'      => array('lowercase', 'stopwords', 'stemmer'),
+                                'char_filter' => array('html_strip')
+                            ),
+                        ),
                     ),
                 ),
                 true

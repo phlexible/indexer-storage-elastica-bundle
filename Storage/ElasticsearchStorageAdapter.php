@@ -279,6 +279,10 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizabl
             $data['suggest'] = $resultSet->getSuggests();
         }
 
+        if ($resultSet->hasAggregations()) {
+            $data['aggregations'] = $resultSet->getAggregations();
+        }
+
         $data['results'] = array();
         foreach ($resultSet->getResults() as $result) {
             $data['results'][] = $result->getData();

@@ -9,9 +9,12 @@
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage;
 
 use Elastica\Query as ElasticaQuery;
+use Elastica\Aggregation as ElasticaAggregation;
 use Elastica\Facet as ElasticaFacet;
 use Elastica\Filter as ElasticaFilter;
 use Elastica\Suggest as ElasticaSuggest;
+use Phlexible\Bundle\IndexerBundle\Query\Aggregation\AggregationInterface;
+use Phlexible\Bundle\IndexerBundle\Query\Aggregation;
 use Phlexible\Bundle\IndexerBundle\Query\Facet\FacetInterface;
 use Phlexible\Bundle\IndexerBundle\Query\Facet;
 use Phlexible\Bundle\IndexerBundle\Query\Filter\FilterInterface;
@@ -36,7 +39,7 @@ class QueryMapper
     public function map(Query $query)
     {
         $elasticaQuery = new ElasticaQuery();
-        if ($query->getSize()) {
+        if (is_int($query->getSize())) {
             $elasticaQuery->setSize($query->getSize());
         }
         if ($query->getStart()) {
@@ -71,7 +74,20 @@ class QueryMapper
             $elasticaQuery->setPostFilter($this->mapFilter($query->getFilter()));
         }
         if ($query->getFacets()) {
-            $elasticaQuery->setFacets($this->mapFacets($query->getFacets()));
+            foreach ($query->getFacets() as $facet) {
+                $elasticaFacet = $this->mapFacet($facet);
+                if ($elasticaFacet) {
+                    $elasticaQuery->addFacet($elasticaFacet);
+                }
+            }
+        }
+        if ($query->getAggregations()) {
+            foreach ($query->getAggregations() as $aggregation) {
+                $elasticaAggregation = $this->mapAggregation($aggregation);
+                if ($elasticaAggregation) {
+                    $elasticaQuery->addAggregation($elasticaAggregation);
+                }
+            }
         }
         if ($query->getSuggest()) {
             $suggest = $this->mapSuggest($query->getSuggest());
@@ -100,6 +116,22 @@ class QueryMapper
             return $elasticaQuery;
         } elseif ($query instanceof Query\TermQuery) {
             $elasticaQuery = new ElasticaQuery\Term();
+            foreach ($query->getParams() as $key => $value) {
+                $method = 'set' . ucfirst($key);
+                $elasticaQuery->$method($value);
+            }
+
+            return $elasticaQuery;
+        } elseif ($query instanceof Query\PrefixQuery) {
+            $elasticaQuery = new ElasticaQuery\Prefix();
+            foreach ($query->getParams() as $key => $value) {
+                $method = 'set' . ucfirst($key);
+                $elasticaQuery->$method($value);
+            }
+
+            return $elasticaQuery;
+        } elseif ($query instanceof Query\MultiMatchQuery) {
+            $elasticaQuery = new ElasticaQuery\MultiMatch();
             foreach ($query->getParams() as $key => $value) {
                 $method = 'set' . ucfirst($key);
                 $elasticaQuery->$method($value);
@@ -163,6 +195,10 @@ class QueryMapper
             return $elasticaFilter;
         } elseif ($filter instanceof Filter\BoolAndFilter) {
             $elasticaFilter = new ElasticaFilter\BoolAnd();
+            foreach ($filter->getFilters() as $subFilter) {
+                $elasticaSubFilter = $this->mapFilter($subFilter);
+                $elasticaFilter->addFilter($elasticaSubFilter);
+            }
             foreach ($filter->getParams() as $key => $value) {
                 $method = 'set' . ucfirst($key);
                 $elasticaFilter->$method($value);
@@ -170,7 +206,11 @@ class QueryMapper
 
             return $elasticaFilter;
         } elseif ($filter instanceof Filter\BoolOrFilter) {
-            $elasticaFilter = new ElasticaFilter\BoolAnd();
+            $elasticaFilter = new ElasticaFilter\BoolOr();
+            foreach ($filter->getFilters() as $subFilter) {
+                $elasticaSubFilter = $this->mapFilter($subFilter);
+                $elasticaFilter->addFilter($elasticaSubFilter);
+            }
             foreach ($filter->getParams() as $key => $value) {
                 $method = 'set' . ucfirst($key);
                 $elasticaFilter->$method($value);
@@ -191,34 +231,62 @@ class QueryMapper
     }
 
     /**
-     * @param FacetInterface[] $facets
+     * @param FacetInterface $facet
      *
-     * @return ElasticaFacet\AbstractFacet[]
+     * @return ElasticaFacet\AbstractFacet
      */
-    private function mapFacets(array $facets)
+    private function mapFacet(FacetInterface $facet)
     {
-        $elasticaFacets = array();
-        foreach ($facets as $facet) {
-            if ($facet instanceof Facet\TermsFacet) {
-                $elasticaFacet = new ElasticaFacet\Terms($facet->getName());
-                foreach ($facet->getParams() as $key => $value) {
-                    $method = 'set' . ucfirst($key);
-                    $elasticaFacet->$method($value);
-                }
-
-                $elasticaFacets[] = $elasticaFacet;
-            } elseif ($facet instanceof Facet\QueryFacet) {
-                $elasticaFacet = new ElasticaFacet\Query($facet->getName());
-                foreach ($facet->getParams() as $key => $value) {
-                    $method = 'set' . ucfirst($key);
-                    $elasticaFacet->$method($value);
-                }
-
-                $elasticaFacets[] = $elasticaFacet;
+        if ($facet instanceof Facet\TermsFacet) {
+            $elasticaFacet = new ElasticaFacet\Terms($facet->getName());
+            foreach ($facet->getParams() as $key => $value) {
+                $method = 'set' . ucfirst($key);
+                $elasticaFacet->$method($value);
             }
+
+            $elasticaFacets[] = $elasticaFacet;
+        } elseif ($facet instanceof Facet\QueryFacet) {
+            $elasticaFacet = new ElasticaFacet\Query($facet->getName());
+            foreach ($facet->getParams() as $key => $value) {
+                $method = 'set' . ucfirst($key);
+                $elasticaFacet->$method($value);
+            }
+
+            return $elasticaFacet;
         }
 
-        return $elasticaFacets;
+        return null;
+    }
+
+    /**
+     * @param AggregationInterface $aggregation
+     *
+     * @return ElasticaAggregation\AbstractAggregation
+     */
+    private function mapAggregation(AggregationInterface $aggregation)
+    {
+        if ($aggregation instanceof Aggregation\TermsAggregation) {
+            $elasticaAggregation = new ElasticaAggregation\Terms($aggregation->getName());
+            foreach ($aggregation->getParams() as $key => $value) {
+                $method = 'set' . ucfirst($key);
+                if ($method === 'setOrder') {
+                    $elasticaAggregation->$method(key($value), current($value));
+                if ($method === 'setInclude' || $method === 'setExclude') {
+                    if (is_array($value)) {
+                        $elasticaAggregation->$method(key($value), current($value));
+                    } else {
+                        $elasticaAggregation->$method($value);
+                    }
+                }
+                } else {
+                    $elasticaAggregation->$method($value);
+                }
+            }
+
+            return $elasticaAggregation;
+        }
+
+        return null;
     }
 
     /**
@@ -235,6 +303,14 @@ class QueryMapper
             /* @var $suggestion AbstractSuggest */
             if ($suggestion instanceof Suggest\TermSuggest) {
                 $elasticaSuggestion = new ElasticaSuggest\Term($suggestion->getName(), '');
+                foreach ($suggestion->getParams() as $key => $value) {
+                    $method = 'set' . ucfirst($key);
+                    $elasticaSuggestion->$method($value);
+                }
+
+                $elasticaSuggestions[] = $elasticaSuggestion;
+            } elseif ($suggestion instanceof Suggest\PhraseSuggest) {
+                $elasticaSuggestion = new ElasticaSuggest\Phrase($suggestion->getName(), '');
                 foreach ($suggestion->getParams() as $key => $value) {
                     $method = 'set' . ucfirst($key);
                     $elasticaSuggestion->$method($value);
