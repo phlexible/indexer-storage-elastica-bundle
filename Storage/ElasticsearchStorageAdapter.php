@@ -285,7 +285,18 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizabl
 
         $data['results'] = array();
         foreach ($resultSet->getResults() as $result) {
-            $data['results'][] = $result->getData();
+            $data['results'][] = array(
+                'score'      => $result->getScore(),
+                'index'      => $result->getIndex(),
+                'hit'        => $result->getHit(),
+                'id'         => $result->getId(),
+                'type'       => $result->getType(),
+                'source'     => $result->getSource(),
+                'version'    => $result->getVersion(),
+                'data'       => $result->getData(),
+                'explain'    => $result->getExplanation(),
+                'highlights' => $result->getHighlights(),
+            );
         }
 
         return $data;
