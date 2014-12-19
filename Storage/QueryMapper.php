@@ -147,12 +147,11 @@ class QueryMapper
             }
 
             return $elasticaQuery;
-        } elseif ($query instanceof Query\DismaxQuery) {
-            $elasticaQuery = new ElasticaQuery\Dismax();
+        } elseif ($query instanceof Query\DisMaxQuery) {
+            $elasticaQuery = new ElasticaQuery\DisMax();
             foreach ($query->getQueries() as $query) {
                 $elasticaQuery->addQuery($this->mapQuery($query));
             }
-            $elasticaQuery->addQuery($query);
             foreach ($query->getParams() as $key => $value) {
                 $method = 'set' . ucfirst($key);
                 $elasticaQuery->$method($value);
@@ -166,6 +165,17 @@ class QueryMapper
                     $method = 'add' . ucfirst($type);
                     $elasticaQuery->$method($this->mapQuery($subQuery));
                 }
+            }
+            foreach ($query->getParams() as $key => $value) {
+                $method = 'set' . ucfirst($key);
+                $elasticaQuery->$method($value);
+            }
+
+            return $elasticaQuery;
+        } elseif ($query instanceof Query\MatchQuery) {
+            $elasticaQuery = new ElasticaQuery\Match();
+            foreach ($query->getFields() as $key => $values) {
+                $elasticaQuery->setField($key, $values);
             }
             foreach ($query->getParams() as $key => $value) {
                 $method = 'set' . ucfirst($key);
