@@ -1,6 +1,6 @@
 {
     "version": "1.0",
     "resources": {
-        "/phlexible/icons/indexerstorageelastica": "Resources/public/icons"
+        "/phlexible/indexerstorageelastica/icons": "Resources/public/icons"
     }
 }
