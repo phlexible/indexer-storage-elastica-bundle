@@ -1,6 +1,12 @@
 {
     "version": "1.0",
     "resources": {
-        "/phlexible/indexerstorageelastica/icons": "Resources/public/icons"
+        "/phlexible/phlexibleindexerstorageelastica/icons": "Resources/public/icons"
+    },
+    "bindings": {
+        "4f0269f0-e730-51af-990e-0c66989a8573": {
+            "query": "/phlexible/phlexibleindexerstorageelastica/icons/*.png",
+            "type": "phlexible/icons"
+        }
     }
 }
