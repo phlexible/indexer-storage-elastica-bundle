@@ -13,13 +13,17 @@
         "phlexible/elastica-bundle": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.2",
-        "phpspec/prophecy": "~1.0"
+        "phpunit/phpunit": "~4.5"
     },
     "repositories": [
         {
             "type": "composer",
-            "url": "https://packages.brainbits.net/phlexible-bundles/"
+            "url": "https://packages.brainbits.net/phlexible-bundles/",
+            "options": {
+                "ssl": {
+                    "allow_self_signed": "true"
+                }
+            }
         }
     ],
     "minimum-stability": "stable"

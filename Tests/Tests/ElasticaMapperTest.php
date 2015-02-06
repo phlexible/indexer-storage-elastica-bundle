@@ -42,16 +42,9 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
      */
     private $mapper;
 
-    /**
-     * @var Prophet
-     */
-    private $prophet;
-
     public function setUp()
     {
-        $this->prophet = new Prophet();
-
-        $this->documentFactory = $this->prophet->prophesize('Phlexible\Bundle\IndexerBundle\Document\DocumentFactory');
+        $this->documentFactory = $this->prophesize('Phlexible\Bundle\IndexerBundle\Document\DocumentFactory');
 
         $testDocument = new TestDocument();
         $testDocument
@@ -62,11 +55,6 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
 
         $this->mapper = new ElasticaMapper($this->documentFactory->reveal());
 
-    }
-
-    protected function tearDown()
-    {
-        $this->prophet->checkPredictions();
     }
 
     public function testMapDocument()
