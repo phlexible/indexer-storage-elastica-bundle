@@ -9,7 +9,7 @@
          verbose="true">
     <testsuites>
         <testsuite name="indexer-storage-elastica-bundle">
-            <directory>.</directory>
+            <directory>Tests</directory>
         </testsuite>
     </testsuites>
 
@@ -23,11 +23,8 @@
     </logging -->
 
     <filter>
-        <whitelist>
-            <directory suffix=".php">src/</directory>
-            <exclude>
-                <directory suffix=".php">Tests</directory>
-            </exclude>
-        </whitelist>
+        <blacklist>
+            <directory suffix=".php">Tests</directory>
+        </blacklist>
     </filter>
 </phpunit>
