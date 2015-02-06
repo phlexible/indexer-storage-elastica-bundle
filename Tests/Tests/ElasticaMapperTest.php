@@ -14,12 +14,14 @@ use Phlexible\Bundle\IndexerBundle\Document\Document;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
 use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper;
 use PHPUnit_Framework_MockObject_MockBuilder as MockBuilder;
+use Prophecy\Prophecy\ObjectProphecy;
+use Prophecy\Prophet;
 
 class TestDocument extends Document
 {
     public function getName()
     {
-        return 'test';
+        return 'testType';
     }
 }
 
@@ -31,7 +33,7 @@ class TestDocument extends Document
 class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var DocumentFactory|MockBuilder
+     * @var DocumentFactory|ObjectProphecy
      */
     private $documentFactory;
 
@@ -40,24 +42,31 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
      */
     private $mapper;
 
+    /**
+     * @var Prophet
+     */
+    private $prophet;
+
     public function setUp()
     {
-        $this->documentFactory = $this->getMockBuilder('Phlexible\Bundle\IndexerBundle\Document\DocumentFactory')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->prophet = new Prophet();
+
+        $this->documentFactory = $this->prophet->prophesize('Phlexible\Bundle\IndexerBundle\Document\DocumentFactory');
 
         $testDocument = new TestDocument();
         $testDocument
             ->setField('firstname')
             ->setFIeld('lastname');
 
-        $this->documentFactory
-            ->expects($this->any())
-            ->method('factory')
-            ->will($this->returnValue($testDocument));
+        $this->documentFactory->factory('testType')->willReturn($testDocument);
 
-        $this->mapper = new ElasticaMapper($this->documentFactory);
+        $this->mapper = new ElasticaMapper($this->documentFactory->reveal());
 
+    }
+
+    protected function tearDown()
+    {
+        $this->prophet->checkPredictions();
     }
 
     public function testMapDocument()
@@ -95,7 +104,7 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
     {
         $elasticaResult = new ElasticaResult(
             array(
-                '_type' => 'test',
+                '_type' => 'testType',
                 '_source' => array(
                     'firstname' => 'testFirstname',
                     'lastname' => 'testLastname'

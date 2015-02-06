@@ -4,6 +4,7 @@ services:
         arguments:
             - @phlexible_elastica.default_client
             - @phlexible_indexer_storage_elastica.elastica_mapper
+            - @phlexible_indexer.update_query
             - @event_dispatcher
             - test2
 
