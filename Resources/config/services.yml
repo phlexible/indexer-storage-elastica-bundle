@@ -1,18 +1,16 @@
 services:
-    phlexible_indexer_storage_elastica.query_mapper:
-        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\QueryMapper
-
-    phlexible_indexer_storage_elastica.adapter:
-        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticsearchStorageAdapter
+    phlexible_indexer_storage_elastica.elastica_storage:
+        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaStorage
         arguments:
             - @phlexible_elastica.default_client
-            - @phlexible_indexer_storage_elastica.query_mapper
+            - @phlexible_indexer_storage_elastica.elastica_mapper
+            - @event_dispatcher
+            - test2
 
-    phlexible_indexer_storage_elastica.storage:
-        class: Phlexible\Bundle\IndexerBundle\Storage\Storage
-        arguments: [@event_dispatcher, @phlexible_indexer_storage_elastica.adapter]
-        tags:
-            - {name: phlexible_indexer.storage}
+    phlexible_indexer_storage_elastica.elastica_mapper:
+        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper
+        arguments:
+            - @phlexible_indexer.document_factory
 
     # problem checks
     phlexible_indexer_storage_elastica.service_check:

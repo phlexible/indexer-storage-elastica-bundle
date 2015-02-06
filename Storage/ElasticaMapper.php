@@ -8,18 +8,12 @@
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage;
 
-use Elastica\Client;
 use Elastica\Document as ElasticaDocument;
-use Elastica\Filter\Ids;
-use Elastica\Index;
-use Elastica\Query as ElasticaQuery;
 use Elastica\Result as ElasticaResult;
 use Elastica\ResultSet as ElasticaResultSet;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
 use Phlexible\Bundle\IndexerBundle\Result\ResultSet;
-use Phlexible\Bundle\IndexerBundle\Storage\UpdateQuery\UpdateQuery;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Elastica mapper
@@ -29,11 +23,25 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class ElasticaMapper
 {
     /**
+     * @var DocumentFactory
+     */
+    private $documentFactory;
+
+    /**
+     * @param DocumentFactory $documentFactory
+     */
+    public function __construct(DocumentFactory $documentFactory)
+    {
+        $this->documentFactory = $documentFactory;
+    }
+
+    /**
      * @param DocumentInterface $document
+     * @param string            $indexName
      *
      * @return ElasticaDocument
      */
-    public function mapDocument(DocumentInterface $document)
+    public function mapDocument(DocumentInterface $document, $indexName)
     {
         $fields = $document->getFields();
 
@@ -50,7 +58,7 @@ class ElasticaMapper
             $data[$key] = $document->getValue($key);
         }
 
-        return new ElasticaDocument($document->getIdentifier(), $data, $document->getName(), $this->getIndexName());
+        return new ElasticaDocument($document->getIdentifier(), $data, $document->getName(), $indexName);
     }
 
     /**
@@ -64,12 +72,16 @@ class ElasticaMapper
         if ($onlyFirst) {
             $result = $elasticaResults->current();
 
-            return $this->mapElasticaResult($result);
+            return $this->mapResult($result);
         }
 
         $results = new ResultSet();
+        $results
+            ->setMaxScore($elasticaResults->getMaxScore())
+            ->setTotalHits($elasticaResults->getTotalHits())
+            ->setTotalTime($elasticaResults->getTotalTime());
         foreach ($elasticaResults->getResults() as $result) {
-            $results->add($result);
+            $results->add($this->mapResult($result));
         }
 
         return $results;
@@ -80,11 +92,10 @@ class ElasticaMapper
      *
      * @return DocumentInterface
      */
-    private function mapElasticaResult(ElasticaResult $result)
+    public function mapResult(ElasticaResult $result)
     {
         $data = $result->getData();
-        $type = $data['type'];
-        $document = $this->documentFactory->factory($type);
+        $document = $this->documentFactory->factory($result->getType());
         foreach ($data as $key => $value) {
             $document->setValue($key, $value);
         }

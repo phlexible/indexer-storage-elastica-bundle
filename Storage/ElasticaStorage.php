@@ -9,25 +9,24 @@
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage;
 
 use Elastica\Client;
-use Elastica\Document as ElasticaDocument;
 use Elastica\Filter\Ids;
 use Elastica\Index;
 use Elastica\Query as ElasticaQuery;
-use Elastica\ResultSet;
+use Elastica\Query;
+use Elastica\Result;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
+use Phlexible\Bundle\IndexerBundle\Storage\Flushable;
 use Phlexible\Bundle\IndexerBundle\Storage\Optimizable;
-use Phlexible\Bundle\IndexerBundle\Storage\StorageAdapterInterface;
 use Phlexible\Bundle\IndexerBundle\Storage\StorageInterface;
-use Phlexible\Bundle\IndexerBundle\Storage\UpdateQuery\Command\AddCommand;
 use Phlexible\Bundle\IndexerBundle\Storage\UpdateQuery\UpdateQuery;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
- * Elasticsearch storage adapter
+ * Elastica storage
  *
- * @author Marco Fischer <mf@brainbits.net>
+ * @author Stephan Wentz <sw@brainbits.net>
  */
-class ElasticsearchStorageAdapter implements StorageInterface
+class ElasticaStorage implements StorageInterface, Optimizable, Flushable
 {
     /**
      * @var Client
@@ -35,18 +34,32 @@ class ElasticsearchStorageAdapter implements StorageInterface
     private $client;
 
     /**
+     * @var ElasticaMapper
+     */
+    private $mapper;
+
+    /**
      * @var EventDispatcherInterface
      */
     private $eventDispatcher;
 
     /**
-     * @param Client                   $client
-     * @param EventDispatcherInterface $eventDispatcher
+     * @var string
      */
-    public function __construct(Client $client, EventDispatcherInterface $eventDispatcher)
+    private $indexName;
+
+    /**
+     * @param Client                   $client
+     * @param ElasticaMapper           $mapper
+     * @param EventDispatcherInterface $eventDispatcher
+     * @param string                   $indexName
+     */
+    public function __construct(Client $client, ElasticaMapper $mapper, EventDispatcherInterface $eventDispatcher, $indexName)
     {
         $this->client = $client;
+        $this->mapper = $mapper;
         $this->eventDispatcher = $eventDispatcher;
+        $this->indexName = $indexName;
     }
 
     /**
@@ -60,33 +73,35 @@ class ElasticsearchStorageAdapter implements StorageInterface
     /**
      * {@inheritdoc}
      */
+    public function execute(UpdateQuery $update)
+    {
+        return $update->execute($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getConnectionString()
     {
-        return $this->client->getConnection()->getHost() . ':' . $this->client->getConnection()->getPort();
+        return $this->client->getConnection()->getHost() .
+            ':' . $this->client->getConnection()->getPort() .
+            '/' . $this->getIndexName();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function findAll()
+    public function count()
     {
-        $resultSet = $this->getIndex()->search(array());
-
-        return $this->mapElasticaResultSet($resultSet);
+        return $this->getIndex()->count();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function find($identifier)
+    public function countType($type)
     {
-        $query = new ElasticaQuery();
-        $filter = new Ids();
-        $filter->addId($identifier);
-        $query->setPostFilter($filter);
-        $resultSet = $this->getIndex()->search($query);
-
-        return $this->mapElasticaResultSet($resultSet, true);
+        return $this->getIndex()->getType($type)->count();
     }
 
     /**
@@ -94,7 +109,7 @@ class ElasticsearchStorageAdapter implements StorageInterface
      */
     public function addDocument(DocumentInterface $document)
     {
-        $this->getIndex()->addDocuments(array($this->mapElasticaDocument($document)));
+        $this->getIndex()->addDocuments(array($this->mapper->mapDocument($document, $this->getIndexName())));
     }
 
     /**
@@ -102,7 +117,7 @@ class ElasticsearchStorageAdapter implements StorageInterface
      */
     public function updateDocument(DocumentInterface $document)
     {
-        $this->getIndex()->updateDocuments(array($this->mapElasticaDocument($document)));
+        $this->getIndex()->updateDocuments(array($this->mapper->mapDocument($document, $this->getIndexName())));
     }
 
     /**
@@ -110,7 +125,7 @@ class ElasticsearchStorageAdapter implements StorageInterface
      */
     public function deleteDocument(DocumentInterface $document)
     {
-        $this->getIndex()->deleteDocuments(array($this->mapElasticaDocument($document)));
+        $this->getIndex()->deleteDocuments(array($this->mapper->mapDocument($document, $this->getIndexName())));
     }
 
     /**
@@ -118,7 +133,8 @@ class ElasticsearchStorageAdapter implements StorageInterface
      */
     public function deleteType($type)
     {
-        $this->getIndex()->getType($type)->deleteDocuments(array());
+        $query = new Query(new Query\MatchAll());
+        $this->getIndex()->getType($type)->deleteByQuery($query);
     }
 
     /**
@@ -126,9 +142,9 @@ class ElasticsearchStorageAdapter implements StorageInterface
      */
     public function delete($identifier)
     {
-        $document = $this->find($identifier);
+        $result = $this->find($identifier);
 
-        $this->client->deleteIds(array($identifier), $this->getIndexName(), $document->getName());
+        $this->client->deleteIds(array($identifier), $this->getIndexName(), $result->getType());
     }
 
     /**
@@ -142,7 +158,7 @@ class ElasticsearchStorageAdapter implements StorageInterface
     /**
      * {@inheritdoc}
      */
-    public function commit()
+    public function flush()
     {
         $this->getIndex()->flush(true);
     }
@@ -168,92 +184,32 @@ class ElasticsearchStorageAdapter implements StorageInterface
     /**
      * @return string
      */
-    private function getIndexName()
+    public function getIndexName()
     {
-        return 'test2';
+        return $this->indexName;
     }
 
     /**
      * @return Index
      */
-    private function getIndex()
+    public function getIndex()
     {
         return $this->client->getIndex($this->getIndexName());
     }
 
     /**
-     * @param DocumentInterface $document
+     * @param string $identifier
      *
-     * @return ElasticaDocument
+     * @return Result
      */
-    private function mapElasticaDocument(DocumentInterface $document)
+    private function find($identifier)
     {
-        $fields = $document->getFields();
+        $query = new ElasticaQuery();
+        $filter = new Ids();
+        $filter->addId($identifier);
+        $query->setPostFilter($filter);
+        $resultSet = $this->getIndex()->search($query);
 
-        $data = array();
-        foreach ($fields as $key => $config) {
-            if (!empty($config[DocumentInterface::CONFIG_READONLY])) {
-                continue;
-            }
-
-            if (!$document->hasValue($key)) {
-                continue;
-            }
-
-            $data[$key] = $document->getValue($key);
-        }
-
-        return new ElasticaDocument($document->getIdentifier(), $data, $document->getName(), $this->getIndexName());
-    }
-
-    /**
-     * @param ResultSet $resultSet
-     * @param bool      $onlyFirst
-     *
-     * @return mixed
-     */
-    private function mapElasticaResultSet(ResultSet $resultSet, $onlyFirst = false)
-    {
-        if ($onlyFirst) {
-            return $resultSet->current();
-        }
-
-        $data = array(
-            'count'         => $resultSet->count(),
-            'countSuggests' => $resultSet->countSuggests(),
-            'maxScore'      => $resultSet->getMaxScore(),
-            'totalHits'     => $resultSet->getTotalHits(),
-            'totalTime'     => $resultSet->getTotalTime(),
-            'query'         => $resultSet->getQuery()->toArray(),
-        );
-        if ($resultSet->hasFacets()) {
-            $data['facets'] = $resultSet->getFacets();
-        }
-
-        if ($resultSet->hasSuggests()) {
-            $data['suggest'] = $resultSet->getSuggests();
-        }
-
-        if ($resultSet->hasAggregations()) {
-            $data['aggregations'] = $resultSet->getAggregations();
-        }
-
-        $data['results'] = array();
-        foreach ($resultSet->getResults() as $result) {
-            $data['results'][] = array(
-                'score'      => $result->getScore(),
-                'index'      => $result->getIndex(),
-                'hit'        => $result->getHit(),
-                'id'         => $result->getId(),
-                'type'       => $result->getType(),
-                'source'     => $result->getSource(),
-                'version'    => $result->getVersion(),
-                'data'       => $result->getData(),
-                'explain'    => $result->getExplanation(),
-                'highlights' => $result->getHighlights(),
-            );
-        }
-
-        return $data;
+        return $resultSet->current();
     }
 }

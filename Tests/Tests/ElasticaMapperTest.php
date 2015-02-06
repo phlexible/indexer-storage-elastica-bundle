@@ -6,97 +6,105 @@
  * @license   proprietary
  */
 
-namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage;
+namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Tests\Storage;
 
-use Elastica\Document as ElasticaDocument;
-use Elastica\Result as ElasticaResult;
 use Elastica\ResultSet as ElasticaResultSet;
+use Elastica\Result as ElasticaResult;
+use Phlexible\Bundle\IndexerBundle\Document\Document;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
-use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
-use Phlexible\Bundle\IndexerBundle\Result\ResultSet;
+use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper;
+use PHPUnit_Framework_MockObject_MockBuilder as MockBuilder;
+
+class TestDocument extends Document
+{
+    public function getName()
+    {
+        return 'test';
+    }
+}
 
 /**
- * Elastica mapper
+ * Elastica mapper test
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
-class ElasticaMapper
+class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var DocumentFactory
+     * @var DocumentFactory|MockBuilder
      */
     private $documentFactory;
 
     /**
-     * @param DocumentFactory $documentFactory
+     * @var ElasticaMapper
      */
-    public function __construct(DocumentFactory $documentFactory)
+    private $mapper;
+
+    public function setUp()
     {
-        $this->documentFactory = $documentFactory;
+        $this->documentFactory = $this->getMockBuilder('Phlexible\Bundle\IndexerBundle\Document\DocumentFactory')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $testDocument = new TestDocument();
+        $testDocument
+            ->setField('firstname')
+            ->setFIeld('lastname');
+
+        $this->documentFactory
+            ->expects($this->any())
+            ->method('factory')
+            ->will($this->returnValue($testDocument));
+
+        $this->mapper = new ElasticaMapper($this->documentFactory);
+
     }
 
-    /**
-     * @param DocumentInterface $document
-     * @param string            $indexName
-     *
-     * @return ElasticaDocument
-     */
-    public function mapDocument(DocumentInterface $document, $indexName)
+    public function testMapDocument()
     {
-        $fields = $document->getFields();
+        $document = new TestDocument();
+        $document
+            ->setField('firstname')
+            ->setValue('firstname', 'testFirstname')
+            ->setFIeld('lastname')
+            ->setValue('lastname', 'testLastname');
 
-        $data = array();
-        foreach ($fields as $key => $config) {
-            if (!empty($config[DocumentInterface::CONFIG_READONLY])) {
-                continue;
-            }
+        $elasticaDocument = $this->mapper->mapDocument($document, 'testIndex');
 
-            if (!$document->hasValue($key)) {
-                continue;
-            }
-
-            $data[$key] = $document->getValue($key);
-        }
-
-        return new ElasticaDocument($document->getIdentifier(), $data, $document->getName(), $indexName);
+        $this->assertSame('testIndex', $elasticaDocument->getIndex());
+        $this->assertSame($document->getValue('firstname'), $elasticaDocument->get('firstname'));
+        $this->assertSame($document->getValue('lastname'), $elasticaDocument->get('lastname'));
     }
 
-    /**
-     * @param ElasticaResultSet $elasticaResults
-     * @param bool              $onlyFirst
-     *
-     * @return ResultSet
-     */
-    public function mapResultSet(ElasticaResultSet $elasticaResults, $onlyFirst = false)
+    public function testMapResultSet()
     {
-        if ($onlyFirst) {
-            $result = $elasticaResults->current();
+        $response = new \Elastica\Response('{"took":16,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1.0,"hits":[{"_index":"testIndex","_type":"testType","_id":"123","_score":1.0,"_source":{"firstname":"testFirstname","lastname":"testLastname"}}]}}');
+        $query = new \Elastica\Query();
+        $elasticaResultSet = new ElasticaResultSet($response, $query);
 
-            return $this->mapResult($result);
-        }
+        $resultSet = $this->mapper->mapResultSet($elasticaResultSet);
 
-        $results = new ResultSet();
-        foreach ($elasticaResults->getResults() as $result) {
-            $results->add($result);
-        }
-
-        return $results;
+        $this->assertSame($elasticaResultSet->getTotalTime(), $resultSet->getTotalTime());
+        $this->assertSame($elasticaResultSet->getTotalHits(), $resultSet->getTotalHits());
+        $this->assertSame($elasticaResultSet->getMaxScore(), $resultSet->getMaxScore());
+        $this->assertSame($elasticaResultSet->current()->getData()['firstname'], $resultSet->current()->getValue('firstname'));
+        $this->assertSame($elasticaResultSet->current()->getData()['lastname'], $resultSet->current()->getValue('lastname'));
     }
 
-    /**
-     * @param ElasticaResult $result
-     *
-     * @return DocumentInterface
-     */
-    public function mapResult(ElasticaResult $result)
+    public function testMapResult()
     {
-        $data = $result->getData();
-        $type = $data['type'];
-        $document = $this->documentFactory->factory($type);
-        foreach ($data as $key => $value) {
-            $document->setValue($key, $value);
-        }
+        $elasticaResult = new ElasticaResult(
+            array(
+                '_type' => 'test',
+                '_source' => array(
+                    'firstname' => 'testFirstname',
+                    'lastname' => 'testLastname'
+                )
+            )
+        );
+        $document = $this->mapper->mapResult($elasticaResult);
 
-        return $document;
+        $this->assertSame($elasticaResult->getData()['firstname'], $document->getValue('firstname'));
+        $this->assertSame($elasticaResult->getData()['lastname'], $document->getValue('lastname'));
     }
 }

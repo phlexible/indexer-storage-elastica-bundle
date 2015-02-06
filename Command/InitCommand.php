@@ -53,7 +53,7 @@ class InitCommand extends ContainerAwareCommand
                 'did_you_mean'    => array('name' => 'did_you_mean', 'type' => 'string', 'analyzer' => 'didYouMean', 'store' => true, 'index' => 'analyzed'),
             );
 
-            $output->writeln('Indexer: ' . $indexer->getLabel());
+            $output->writeln('Indexer: ' . $indexer->getName());
             $output->writeln('  Document: ' . $indexer->getDocumentClass());
 
             foreach ($fields as $name => $field) {
