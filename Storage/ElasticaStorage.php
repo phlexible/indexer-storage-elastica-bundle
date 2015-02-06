@@ -11,21 +11,23 @@ namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage;
 use Elastica\Client;
 use Elastica\Document as ElasticaDocument;
 use Elastica\Filter\Ids;
-use Elastica\Filter\Term;
 use Elastica\Index;
 use Elastica\Query as ElasticaQuery;
 use Elastica\ResultSet;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
-use Phlexible\Bundle\IndexerBundle\Query\Query;
 use Phlexible\Bundle\IndexerBundle\Storage\Optimizable;
 use Phlexible\Bundle\IndexerBundle\Storage\StorageAdapterInterface;
+use Phlexible\Bundle\IndexerBundle\Storage\StorageInterface;
+use Phlexible\Bundle\IndexerBundle\Storage\UpdateQuery\Command\AddCommand;
+use Phlexible\Bundle\IndexerBundle\Storage\UpdateQuery\UpdateQuery;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Elasticsearch storage adapter
  *
  * @author Marco Fischer <mf@brainbits.net>
  */
-class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizable
+class ElasticsearchStorageAdapter implements StorageInterface
 {
     /**
      * @var Client
@@ -33,35 +35,26 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizabl
     private $client;
 
     /**
-     * @var QueryMapper
+     * @var EventDispatcherInterface
      */
-    private $queryMapper;
+    private $eventDispatcher;
 
     /**
-     * @param Client      $client
-     * @param QueryMapper $queryMapper
+     * @param Client                   $client
+     * @param EventDispatcherInterface $eventDispatcher
      */
-    public function __construct(Client $client,
-                                QueryMapper $queryMapper)
+    public function __construct(Client $client, EventDispatcherInterface $eventDispatcher)
     {
         $this->client = $client;
-        $this->queryMapper = $queryMapper;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getId()
+    public function createUpdate()
     {
-        return 'storage-elastica';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getLabel()
-    {
-        return 'Elasticsearch';
+        return new UpdateQuery($this->eventDispatcher);
     }
 
     /**
@@ -75,19 +68,7 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizabl
     /**
      * {@inheritdoc}
      */
-    public function getByQuery(Query $query)
-    {
-        $elasticaQuery = $this->mapElasticaQuery($query);
-
-        $resultSet = $this->getIndex()->search($elasticaQuery);
-
-        return $this->mapElasticaResultSet($resultSet);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getAll()
+    public function findAll()
     {
         $resultSet = $this->getIndex()->search(array());
 
@@ -97,7 +78,7 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizabl
     /**
      * {@inheritdoc}
      */
-    public function getByIdentifier($identifier)
+    public function find($identifier)
     {
         $query = new ElasticaQuery();
         $filter = new Ids();
@@ -127,7 +108,7 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizabl
     /**
      * {@inheritdoc}
      */
-    public function removeDocument(DocumentInterface $document)
+    public function deleteDocument(DocumentInterface $document)
     {
         $this->getIndex()->deleteDocuments(array($this->mapElasticaDocument($document)));
     }
@@ -135,23 +116,17 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizabl
     /**
      * {@inheritdoc}
      */
-    public function removeByClass($class)
+    public function deleteType($type)
     {
-        $query = new ElasticaQuery();
-        $filter = new Term();
-        $filter->setTerm('_documentclass', $class);
-        $query->setPostFilter($filter);
-        $result = $this->getIndex()->search($query);
-
-        $this->getIndex()->deleteDocuments($result);
+        $this->getIndex()->getType($type)->deleteDocuments(array());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function removeByIdentifier($identifier = null)
+    public function delete($identifier)
     {
-        $document = $this->getByIdentifier($identifier);
+        $document = $this->find($identifier);
 
         $this->client->deleteIds(array($identifier), $this->getIndexName(), $document->getName());
     }
@@ -159,17 +134,7 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizabl
     /**
      * {@inheritdoc}
      */
-    public function removeByQuery(Query $query)
-    {
-        $documents = $this->getByQuery($query);
-
-        $this->getIndex()->deleteDocuments($documents);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function removeAll()
+    public function deleteAll()
     {
         $this->getIndex()->deleteDocuments(array());
     }
@@ -239,16 +204,6 @@ class ElasticsearchStorageAdapter implements StorageAdapterInterface, Optimizabl
         }
 
         return new ElasticaDocument($document->getIdentifier(), $data, $document->getName(), $this->getIndexName());
-    }
-
-    /**
-     * @param Query $query
-     *
-     * @return ElasticaQuery
-     */
-    private function mapElasticaQuery(Query $query)
-    {
-        return $this->queryMapper->map($query);
     }
 
     /**
