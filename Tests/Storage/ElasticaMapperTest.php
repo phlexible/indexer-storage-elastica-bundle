@@ -13,7 +13,6 @@ use Elastica\Result as ElasticaResult;
 use Phlexible\Bundle\IndexerBundle\Document\Document;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
 use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper;
-use PHPUnit_Framework_MockObject_MockBuilder as MockBuilder;
 use Prophecy\Prophecy\ObjectProphecy;
 use Prophecy\Prophet;
 
