@@ -13,7 +13,7 @@ $iterator = Finder::create()
 ;
 
 return new Sami($iterator, array(
-    'title'                => 'Symfony2 API',
+    'title'                => 'Elastica Indexer Storage API',
     'build_dir'            => __DIR__.'/build/apidocs',
     'cache_dir'            => __DIR__.'/build/cache',
     'default_opened_level' => 2,
