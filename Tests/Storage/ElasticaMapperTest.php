@@ -61,15 +61,15 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
         $document = new TestDocument();
         $document
             ->setField('firstname')
-            ->setValue('firstname', 'testFirstname')
+            ->set('firstname', 'testFirstname')
             ->setFIeld('lastname')
-            ->setValue('lastname', 'testLastname');
+            ->set('lastname', 'testLastname');
 
         $elasticaDocument = $this->mapper->mapDocument($document, 'testIndex');
 
         $this->assertSame('testIndex', $elasticaDocument->getIndex());
-        $this->assertSame($document->getValue('firstname'), $elasticaDocument->get('firstname'));
-        $this->assertSame($document->getValue('lastname'), $elasticaDocument->get('lastname'));
+        $this->assertSame($document->get('firstname'), $elasticaDocument->get('firstname'));
+        $this->assertSame($document->get('lastname'), $elasticaDocument->get('lastname'));
     }
 
     public function testMapResultSet()
@@ -83,8 +83,8 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($elasticaResultSet->getTotalTime(), $resultSet->getTotalTime());
         $this->assertSame($elasticaResultSet->getTotalHits(), $resultSet->getTotalHits());
         $this->assertSame($elasticaResultSet->getMaxScore(), $resultSet->getMaxScore());
-        $this->assertSame($elasticaResultSet->current()->getData()['firstname'], $resultSet->current()->getValue('firstname'));
-        $this->assertSame($elasticaResultSet->current()->getData()['lastname'], $resultSet->current()->getValue('lastname'));
+        $this->assertSame($elasticaResultSet->current()->getData()['firstname'], $resultSet->current()->get('firstname'));
+        $this->assertSame($elasticaResultSet->current()->getData()['lastname'], $resultSet->current()->get('lastname'));
     }
 
     public function testMapResult()
@@ -100,7 +100,7 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
         );
         $document = $this->mapper->mapResult($elasticaResult);
 
-        $this->assertSame($elasticaResult->getData()['firstname'], $document->getValue('firstname'));
-        $this->assertSame($elasticaResult->getData()['lastname'], $document->getValue('lastname'));
+        $this->assertSame($elasticaResult->getData()['firstname'], $document->get('firstname'));
+        $this->assertSame($elasticaResult->getData()['lastname'], $document->get('lastname'));
     }
 }

@@ -38,23 +38,25 @@ class InitCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $indexers = $this->getContainer()->get('phlexible_indexer.indexers');
+        $documentFactory = $this->getContainer()->get('phlexible_indexer.document_factory');
 
         $types = array();
 
         foreach ($indexers as $indexer) {
             /* @var $indexer IndexerInterface */
 
-            $document = $indexer->createDocument();
+            $documentClass = $indexer->getDocumentClass();
+            $document = $documentFactory->factory($documentClass);
 
             $fields = array(
-                'id'              => array('name' => 'id', 'type' => 'string', 'index' => 'analyzed', 'store' => true),
-                '_documentclass_' => array('name' => '_documentclass_', 'type' => 'string', 'index' => 'not_analyzed', 'store' => true),
-                'autocomplete'    => array('name' => 'autocomplete', 'type' => 'string', 'analyzer' => 'autocomplete', 'store' => true, 'index' => 'analyzed'),
-                'did_you_mean'    => array('name' => 'did_you_mean', 'type' => 'string', 'analyzer' => 'didYouMean', 'store' => true, 'index' => 'analyzed'),
+                'id'           => array('name' => 'id', 'type' => 'string', 'index' => 'analyzed', 'store' => true),
+                'type'         => array('name' => 'type', 'type' => 'string', 'index' => 'not_analyzed', 'store' => true),
+                'autocomplete' => array('name' => 'autocomplete', 'type' => 'string', 'analyzer' => 'autocomplete', 'store' => true, 'index' => 'analyzed'),
+                'did_you_mean' => array('name' => 'did_you_mean', 'type' => 'string', 'analyzer' => 'didYouMean', 'store' => true, 'index' => 'analyzed'),
             );
 
             $output->writeln('Indexer: ' . $indexer->getName());
-            $output->writeln('  Document: ' . $indexer->getDocumentClass());
+            $output->writeln('  Document: ' . get_class($document));
 
             foreach ($fields as $name => $field) {
                 $output->writeln('    ' . $name .':');
@@ -89,15 +91,30 @@ class InitCommand extends ContainerAwareCommand
                     'name'  => $name,
                     'type'  => $type,
                 );
-                if ($index !== null) {
-                    $field['index'] = $index;
-                }
-                if ($store !== null) {
-                    $field['store'] = $store;
-                }
 
-                if ($name === 'content' || $name === 'title') {
-                    $field['copy_to'] = array('autocomplete', 'did_you_mean');
+                if ($type === 'attachment') {
+                    $field['fields'] = array(
+                        "date"           => ["store" => "yes"],
+                        "title"          => ["store" => "yes"],
+                        "name"           => ["store" => "yes"],
+                        "author"         => ["store" => "yes"],
+                        "keywords"       => ["store" => "yes"],
+                        "content_type"   => ["store" => "yes"],
+                        "content_length" => ["store" => "yes"],
+                        "language"       => ["store" => "yes"],
+                        $name            => ["store" => "yes"],
+                    );
+                } else {
+                    if ($index !== null) {
+                        $field['index'] = $index;
+                    }
+                    if ($store !== null) {
+                        $field['store'] = $store;
+                    }
+
+                    if ($name === 'content' || $name === 'title') {
+                        $field['copy_to'] = array('autocomplete', 'did_you_mean');
+                    }
                 }
 
                 if (isset($fields[$name]) && $fields[$name] !== $field) {
@@ -172,12 +189,15 @@ class InitCommand extends ContainerAwareCommand
                 //$mapping->setParam('index_analyzer', 'indexAnalyzer');
                 //$mapping->setParam('search_analyzer', 'searchAnalyzer');
                 $mapping->setProperties($fields);
+                if ($name === 'media') {
+                    $mapping->setSource(array('excludes' => array('mediafile')));
+                }
                 $mapping->send();
 
                 $output->writeln("  Type $name mapped.");
             }
         } catch (\Exception $e) {
-            $output->writeln($e->getMessage());
+            $output->writeln('<error>'.$e->getMessage().'</error>');
 
             return 1;
         }

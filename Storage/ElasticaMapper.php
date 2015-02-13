@@ -51,11 +51,11 @@ class ElasticaMapper
                 continue;
             }
 
-            if (!$document->hasValue($key)) {
+            if (!$document->has($key)) {
                 continue;
             }
 
-            $data[$key] = $document->getValue($key);
+            $data[$key] = $document->get($key);
         }
 
         return new ElasticaDocument($document->getIdentifier(), $data, $document->getName(), $indexName);
@@ -97,7 +97,7 @@ class ElasticaMapper
         $data = $result->getData();
         $document = $this->documentFactory->factory($result->getType());
         foreach ($data as $key => $value) {
-            $document->setValue($key, $value);
+            $document->set($key, $value);
         }
 
         return $document;
