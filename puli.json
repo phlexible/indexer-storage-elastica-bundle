@@ -1,6 +1,6 @@
 {
     "version": "1.0",
-    "resources": {
+    "path-mappings": {
         "/phlexible/phlexibleindexerstorageelastica/icons": "Resources/public/icons"
     },
     "bindings": {
