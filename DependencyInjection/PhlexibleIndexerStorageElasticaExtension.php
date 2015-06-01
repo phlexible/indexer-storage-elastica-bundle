@@ -28,6 +28,11 @@ class PhlexibleIndexerStorageElasticaExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
 
+        $configuration = $this->getConfiguration($config, $container);
+        $config = $this->processConfiguration($configuration, $config);
+
+        $container->setParameter('phlexible_indexer_storage_elastica.index_name', $config['index_name']);
+
         $container->setAlias('phlexible_indexer.storage.default', 'phlexible_indexer_storage_elastica.elastica_storage');
     }
 }

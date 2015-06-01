@@ -14,7 +14,6 @@ use Phlexible\Bundle\IndexerBundle\Document\Document;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
 use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper;
 use Prophecy\Prophecy\ObjectProphecy;
-use Prophecy\Prophet;
 
 class TestDocument extends Document
 {

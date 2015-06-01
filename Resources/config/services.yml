@@ -6,7 +6,7 @@ services:
             - @phlexible_indexer_storage_elastica.elastica_mapper
             - @phlexible_indexer.storage_operator
             - @event_dispatcher
-            - test2
+            - %phlexible_indexer_storage_elastica.index_name%
 
     phlexible_indexer_storage_elastica.elastica_mapper:
         class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper
