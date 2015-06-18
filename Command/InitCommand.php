@@ -132,7 +132,7 @@ class InitCommand extends ContainerAwareCommand
         $client = $this->getContainer()->get('phlexible_elastica.default_client');
 
         try {
-            $indexName = 'test2';
+            $indexName = $this->getContainer()->getParameter('phlexible_indexer_storage_elastica.index_name');
             $index = $client->getIndex($indexName);
 
             $index->create(

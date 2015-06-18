@@ -241,9 +241,44 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function isHealthy()
     {
-        $serverStatus = $this->client->getStatus()->getServerStatus();
+        try {
+            $serverStatus = $this->client->getStatus()->getServerStatus();
+            $healthy = $serverStatus['status'] == 200;
+        } catch (\Exception $e) {
+            $healthy = false;
+        }
 
-        return $serverStatus['status'] == 200;
+        if ($healthy) {
+            $healthy = $this->getIndex()->exists();
+        }
+
+        return $healthy;
+    }
+
+    /**
+     * @return array
+     */
+    public function check()
+    {
+        $errors = array();
+
+        try {
+            $serverStatus = $this->client->getStatus()->getServerStatus();
+
+            if ($serverStatus['status'] == 200) {
+                $index = $this->getIndex();
+                if ($index->exists()) {
+                } else {
+                    $errors[] = 'Index ' . $this->getIndexName() . ' does not exist.';
+                }
+            } else {
+                $errors[] = 'Elasticsearch server status not ok.';
+            }
+        } catch (\Exception $e) {
+            $errors[] = 'Elasticsearch server not reachable.';
+        }
+
+        return $errors;
     }
 
     /**
