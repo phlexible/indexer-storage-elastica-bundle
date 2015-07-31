@@ -10,7 +10,7 @@ namespace Phlexible\Bundle\IndexerStorageElasticaBundle\ProblemChecker;
 
 use Elastica\Client;
 use Phlexible\Bundle\ProblemBundle\Entity\Problem;
-use Phlexible\Bundle\ProblemBundle\ProblemChecker\ProblemCheckerInterface;
+use Phlexible\Bundle\ProblemBundle\Model\ProblemCheckerInterface;
 
 /**
  * Service check
