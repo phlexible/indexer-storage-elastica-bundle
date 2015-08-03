@@ -12,7 +12,7 @@ use Elastica\Document as ElasticaDocument;
 use Elastica\Result as ElasticaResult;
 use Elastica\ResultSet as ElasticaResultSet;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
-use Phlexible\Bundle\IndexerBundle\Model\DocumentInterface;
+use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
 use Phlexible\Bundle\IndexerBundle\Result\ResultSet;
 
 /**
@@ -90,7 +90,7 @@ class ElasticaMapper
     /**
      * @param ElasticaResult $result
      *
-     * @return DocumentInterface
+     * @return \Phlexible\Bundle\IndexerBundle\Document\DocumentInterface
      */
     public function mapResult(ElasticaResult $result)
     {

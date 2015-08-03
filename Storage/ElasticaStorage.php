@@ -16,12 +16,12 @@ use Elastica\Query as ElasticaQuery;
 use Elastica\Query;
 use Elastica\Result;
 use Elastica\ResultSet;
-use Phlexible\Bundle\IndexerBundle\Model\DocumentInterface;
-use Phlexible\Bundle\IndexerBundle\Model\StorageInterface;
+use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
 use Phlexible\Bundle\IndexerBundle\Storage\Flushable;
 use Phlexible\Bundle\IndexerBundle\Storage\Operation\Operations;
 use Phlexible\Bundle\IndexerBundle\Storage\Operation\Operator;
 use Phlexible\Bundle\IndexerBundle\Storage\Optimizable;
+use Phlexible\Bundle\IndexerBundle\Storage\StorageInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
