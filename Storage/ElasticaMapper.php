@@ -90,7 +90,7 @@ class ElasticaMapper
     /**
      * @param ElasticaResult $result
      *
-     * @return \Phlexible\Bundle\IndexerBundle\Document\DocumentInterface
+     * @return DocumentInterface
      */
     public function mapResult(ElasticaResult $result)
     {
