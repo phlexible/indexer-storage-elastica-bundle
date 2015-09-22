@@ -13,9 +13,17 @@ services:
         arguments:
             - @phlexible_indexer.document_factory
 
+    phlexible_indexer_storage_elastica.initializer:
+        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\Initializer
+        arguments:
+            - @phlexible_indexer.indexers
+            - @phlexible_elastica.default_client
+            - %phlexible_indexer_storage_elastica.index_name%
+
     # problem checks
     phlexible_indexer_storage_elastica.service_check:
         class: Phlexible\Bundle\IndexerStorageElasticaBundle\ProblemChecker\ServiceChecker
-        arguments: [@phlexible_elastica.default_client]
+        arguments:
+            - @phlexible_elastica.default_client
         tags:
             - {name: phlexible_problem.checker}
