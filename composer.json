@@ -2,6 +2,8 @@
     "name": "phlexible/indexer-storage-elastica-bundle",
     "description": "phlexible indexer storage elastica bundle",
     "license": "proprietary",
+    "type": "symfony-bundle",
+    "keywords": ["elastia", "elasticsearch", "indexer"],
     "autoload": {
         "psr-4": {
             "Phlexible\\Bundle\\IndexerStorageElasticaBundle\\": ""
