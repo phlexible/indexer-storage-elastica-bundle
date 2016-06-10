@@ -8,8 +8,6 @@
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Command;
 
-use Elastica\Type\Mapping;
-use Phlexible\Bundle\IndexerBundle\Indexer\IndexerInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

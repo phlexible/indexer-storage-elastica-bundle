@@ -13,7 +13,6 @@ use Elastica\Index;
 use Elastica\Type\Mapping;
 use Phlexible\Bundle\IndexerBundle\Indexer\IndexerCollection;
 use Phlexible\Bundle\IndexerBundle\Indexer\IndexerInterface;
-use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaStorage;
 
 /**
  * Initializer
@@ -75,16 +74,16 @@ class Initializer
 
             $fields = array(
                 'id' => array(
-                    'name' => 'id', 'type' => 'string', 'index' => 'analyzed', 'store' => true
+                    'name' => 'id',
+                    'type' => 'string',
+                    'index' => 'analyzed',
+                    'store' => true
                 ),
                 'type' => array(
-                    'name'  => 'type', 'type'  => 'string', 'index' => 'not_analyzed', 'store' => true
-                ),
-                'autocomplete' => array(
-                    'name' => 'autocomplete', 'type' => 'string', 'analyzer' => 'autocomplete', 'store' => true, 'index'    => 'analyzed'
-                ),
-                'did_you_mean' => array(
-                    'name' => 'did_you_mean', 'type' => 'string', 'analyzer' => 'didYouMean', 'store' => true, 'index' => 'analyzed'
+                    'name'  => 'type',
+                    'type'  => 'string',
+                    'index' => 'not_analyzed',
+                    'store' => true
                 ),
             );
 
@@ -136,10 +135,14 @@ class Initializer
                     if ($store !== null) {
                         $field['store'] = $store;
                     }
+                }
 
-                    if ($name === 'content' || $name === 'title') {
-                        $field['copy_to'] = array('autocomplete', 'did_you_mean');
-                    }
+                if (!empty($config['copyTo'])) {
+                    $field['copy_to'] = $config['copyTo'];
+                }
+
+                if (!empty($config['analyzer'])) {
+                    $field['analyzer'] = $config['analyzer'];
                 }
 
                 if (isset($fields[$name]) && $fields[$name] !== $field) {
@@ -198,6 +201,12 @@ class Initializer
                         'type'        => 'custom',
                         'tokenizer'   => 'standard',
                         'filter'      => array('lowercase', 'autocompleteFilter'),
+                        'char_filter' => array('html_strip')
+                    ),
+                    'lowercase' => array(
+                        'type'        => 'custom',
+                        'tokenizer'   => 'keyword',
+                        'filter'      => array('lowercase'),
                         'char_filter' => array('html_strip')
                     ),
                     'default' => array(
