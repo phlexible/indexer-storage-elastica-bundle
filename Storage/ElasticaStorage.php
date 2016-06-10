@@ -168,7 +168,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
             return 0;
         }
 
-        $response = $this->client->deleteIds(array($identifier), $this->getIndexName(), $result->getType());
+        $response = $this->client->deleteIds(array((string) $identifier), $this->getIndexName(), $result->getType());
 
         return $response->count();
     }
@@ -306,7 +306,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
     {
         $query = new ElasticaQuery();
         $filter = new Ids();
-        $filter->addId($identifier);
+        $filter->addId((string) $identifier);
         $query->setPostFilter($filter);
         $resultSet = $this->getIndex()->search($query);
 
