@@ -2,26 +2,26 @@ services:
     phlexible_indexer_storage_elastica.elastica_storage:
         class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaStorage
         arguments:
-            - @phlexible_indexer_storage_elastica.index
-            - @phlexible_indexer_storage_elastica.elastica_mapper
-            - @phlexible_indexer.storage_operator
-            - @event_dispatcher
+            - "@phlexible_indexer_storage_elastica.index"
+            - "@phlexible_indexer_storage_elastica.elastica_mapper"
+            - "@phlexible_indexer.storage_operator"
+            - "@event_dispatcher"
 
     phlexible_indexer_storage_elastica.elastica_mapper:
         class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper
         arguments:
-            - @phlexible_indexer.document_factory
+            - "@phlexible_indexer.document_factory"
 
     phlexible_indexer_storage_elastica.initializer:
         class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\Initializer
         arguments:
-            - @phlexible_indexer.indexers
-            - @phlexible_indexer_storage_elastica.index
+            - "@phlexible_indexer.indexers"
+            - "@phlexible_indexer_storage_elastica.index"
 
     # problem checks
     phlexible_indexer_storage_elastica.service_check:
         class: Phlexible\Bundle\IndexerStorageElasticaBundle\ProblemChecker\ServiceChecker
         arguments:
-            - @phlexible_indexer_storage_elastica.index
+            - "@phlexible_indexer_storage_elastica.index"
         tags:
             - {name: phlexible_problem.checker}
