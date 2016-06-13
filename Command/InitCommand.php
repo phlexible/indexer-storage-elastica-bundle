@@ -10,6 +10,7 @@ namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 
@@ -28,6 +29,7 @@ class InitCommand extends ContainerAwareCommand
         $this
             ->setName('indexer-storage-elastica:init')
             ->setDescription('Initialize elastica storage.')
+            ->addOption('--recreate', null, InputOption::VALUE_NONE)
         ;
     }
 
@@ -52,7 +54,7 @@ class InitCommand extends ContainerAwareCommand
             }
         }
 
-        $initializer->initialize($mappings, $config);
+        $initializer->initialize($mappings, $config, $input->getOption('recreate'));
 
         $output->writeln('<info>Storage initialized.</info>');
         return 0;

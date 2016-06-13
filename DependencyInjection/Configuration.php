@@ -28,7 +28,7 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->scalarNode('index_name')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('index_name')->defaultValue('phlexible_elastica.index')->end()
             ->end();
 
         return $treeBuilder;

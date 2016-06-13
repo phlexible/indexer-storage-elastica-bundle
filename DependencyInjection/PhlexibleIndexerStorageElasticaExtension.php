@@ -32,6 +32,7 @@ class PhlexibleIndexerStorageElasticaExtension extends Extension
         $config = $this->processConfiguration($configuration, $config);
 
         $container->setParameter('phlexible_indexer_storage_elastica.index_name', $config['index_name']);
+        $container->setAlias('phlexible_indexer_storage_elastica.index', $config['index_name']);
 
         $container->setAlias('phlexible_indexer.storage.default', 'phlexible_indexer_storage_elastica.elastica_storage');
     }

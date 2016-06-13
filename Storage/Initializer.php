@@ -8,7 +8,6 @@
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage;
 
-use Elastica\Client;
 use Elastica\Index;
 use Elastica\Type\Mapping;
 use Phlexible\Bundle\IndexerBundle\Indexer\IndexerCollection;
@@ -27,32 +26,18 @@ class Initializer
     private $indexers;
 
     /**
-     * @var Client
-     */
-    private $client;
-
-    /**
      * @var Index
      */
     private $index;
 
     /**
-     * @var string
-     */
-    private $indexName;
-
-    /**
      * @param IndexerCollection $indexers
-     * @param Client            $client
-     * @param string            $indexName
+     * @param Index             $index
      */
-    public function __construct(IndexerCollection $indexers, Client $client, $indexName)
+    public function __construct(IndexerCollection $indexers, Index $index)
     {
         $this->indexers = $indexers;
-        $this->client = $client;
-        $this->indexName = $indexName;
-
-        $this->index = $client->getIndex($this->indexName);
+        $this->index = $index;
     }
 
     /**
@@ -74,13 +59,11 @@ class Initializer
 
             $fields = array(
                 'id' => array(
-                    'name' => 'id',
                     'type' => 'string',
                     'index' => 'analyzed',
                     'store' => true
                 ),
                 'type' => array(
-                    'name'  => 'type',
                     'type'  => 'string',
                     'index' => 'not_analyzed',
                     'store' => true
@@ -112,7 +95,6 @@ class Initializer
                 }
 
                 $field = array(
-                    'name' => $name,
                     'type' => $type,
                 );
 
@@ -224,10 +206,11 @@ class Initializer
     /**
      * @param Mapping[] $mappings
      * @param array     $config
+     * @param bool      $recreate
      */
-    public function initialize(array $mappings, array $config)
+    public function initialize(array $mappings, array $config, $recreate = false)
     {
-        $this->index->create($config, true);
+        $this->index->create($config, $recreate);
 
         foreach ($mappings as $name => $mapping) {
             $mapping->send();

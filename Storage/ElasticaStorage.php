@@ -8,7 +8,6 @@
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage;
 
-use Elastica\Client;
 use Elastica\Filter\Ids;
 use Elastica\Filter\MatchAll;
 use Elastica\Index;
@@ -32,9 +31,9 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class ElasticaStorage implements StorageInterface, Optimizable, Flushable
 {
     /**
-     * @var Client
+     * @var Index
      */
-    private $client;
+    private $index;
 
     /**
      * @var ElasticaMapper
@@ -52,29 +51,21 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
     private $eventDispatcher;
 
     /**
-     * @var string
-     */
-    private $indexName;
-
-    /**
-     * @param Client                   $client
+     * @param Index                    $index
      * @param ElasticaMapper           $mapper
      * @param Operator                 $operator
      * @param EventDispatcherInterface $eventDispatcher
-     * @param string                   $indexName
      */
     public function __construct(
-        Client $client,
+        Index $index,
         ElasticaMapper $mapper,
         Operator $operator,
-        EventDispatcherInterface $eventDispatcher,
-        $indexName)
+        EventDispatcherInterface $eventDispatcher)
     {
-        $this->client = $client;
+        $this->index = $index;
         $this->mapper = $mapper;
         $this->operator = $operator;
         $this->eventDispatcher = $eventDispatcher;
-        $this->indexName = $indexName;
     }
 
     /**
@@ -106,9 +97,11 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function getConnectionString()
     {
-        return $this->client->getConnection()->getHost() .
-            ':' . $this->client->getConnection()->getPort() .
-            '/' . $this->getIndexName();
+        $connection = $this->index->getClient()->getConnection();
+
+        return $connection->getHost() .
+            ':' . $connection->getPort() .
+            '/' . $this->index->getName();
     }
 
     /**
@@ -116,7 +109,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function count()
     {
-        return $this->getIndex()->count();
+        return $this->index->count();
     }
 
     /**
@@ -124,7 +117,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function countType($type)
     {
-        return $this->getIndex()->getType($type)->count();
+        return $this->index->getType($type)->count();
     }
 
     /**
@@ -132,7 +125,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function addDocument(DocumentInterface $document)
     {
-        $response = $this->getIndex()->addDocuments(array($this->mapper->mapDocument($document, $this->getIndexName())));
+        $response = $this->index->addDocuments(array($this->mapper->mapDocument($document, $this->index->getName())));
 
         return $response->count();
     }
@@ -142,7 +135,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function updateDocument(DocumentInterface $document)
     {
-        $response = $this->getIndex()->updateDocuments(array($this->mapper->mapDocument($document, $this->getIndexName())));
+        $response = $this->index->updateDocuments(array($this->mapper->mapDocument($document, $this->index->getName())));
 
         return $response->count();
     }
@@ -152,7 +145,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function deleteDocument(DocumentInterface $document)
     {
-        $response = $this->getIndex()->deleteDocuments(array($this->mapper->mapDocument($document, $this->getIndexName())));
+        $response = $this->index->deleteDocuments(array($this->mapper->mapDocument($document, $this->index->getName())));
 
         return $response->count();
     }
@@ -168,7 +161,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
             return 0;
         }
 
-        $response = $this->client->deleteIds(array((string) $identifier), $this->getIndexName(), $result->getType());
+        $response = $this->index->getClient()->deleteIds(array((string) $identifier), $this->index->getName(), $result->getType());
 
         return $response->count();
     }
@@ -189,7 +182,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
             $ids[] = $result->getId();
         }
 
-        $response = $this->client->deleteIds($ids, $this->getIndexName(), $type);
+        $response = $this->index->getClient()->deleteIds($ids, $this->index->getName(), $type);
 
         return $response->count();
     }
@@ -212,7 +205,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
 
         $count = 0;
         foreach ($typeIds as $type => $ids) {
-            $response = $this->client->deleteIds($ids, $this->getIndexName(), $type);
+            $response = $this->index->getClient()->deleteIds($ids, $this->index->getName(), $type);
 
             $count += $response->count();
         }
@@ -225,7 +218,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function flush()
     {
-        $this->getIndex()->flush(true);
+        $this->index->flush(true);
     }
 
     /**
@@ -233,7 +226,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function optimize()
     {
-        $this->getIndex()->optimize();
+        $this->index->optimize();
     }
 
     /**
@@ -242,14 +235,14 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
     public function isHealthy()
     {
         try {
-            $serverStatus = $this->client->getStatus()->getServerStatus();
+            $serverStatus = $this->index->getClient()->getStatus()->getServerStatus();
             $healthy = $serverStatus['status'] == 200;
         } catch (\Exception $e) {
             $healthy = false;
         }
 
         if ($healthy) {
-            $healthy = $this->getIndex()->exists();
+            $healthy = $this->index->exists();
         }
 
         return $healthy;
@@ -263,13 +256,12 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
         $errors = array();
 
         try {
-            $serverStatus = $this->client->getStatus()->getServerStatus();
+            $serverStatus = $this->index->getClient()->getStatus()->getServerStatus();
 
             if ($serverStatus['status'] == 200) {
-                $index = $this->getIndex();
-                if ($index->exists()) {
+                if ($this->index->exists()) {
                 } else {
-                    $errors[] = 'Index ' . $this->getIndexName() . ' does not exist.';
+                    $errors[] = 'Index ' . $this->index->getName() . ' does not exist.';
                 }
             } else {
                 $errors[] = 'Elasticsearch server status not ok.';
@@ -279,22 +271,6 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
         }
 
         return $errors;
-    }
-
-    /**
-     * @return string
-     */
-    public function getIndexName()
-    {
-        return $this->indexName;
-    }
-
-    /**
-     * @return Index
-     */
-    public function getIndex()
-    {
-        return $this->client->getIndex($this->getIndexName());
     }
 
     /**
@@ -308,7 +284,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
         $filter = new Ids();
         $filter->addId((string) $identifier);
         $query->setPostFilter($filter);
-        $resultSet = $this->getIndex()->search($query);
+        $resultSet = $this->index->search($query);
 
         return $resultSet->current();
     }
@@ -321,7 +297,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
         $query = new ElasticaQuery();
         $filter = new MatchAll();
         $query->setPostFilter($filter);
-        $resultSet = $this->getIndex()->search($query);
+        $resultSet = $this->index->search($query);
 
         return $resultSet;
     }
@@ -336,7 +312,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
         $query = new ElasticaQuery();
         $filter = new MatchAll();
         $query->setPostFilter($filter);
-        $resultSet = $this->getIndex()->getType($type)->search($query);
+        $resultSet = $this->index->getType($type)->search($query);
 
         return $resultSet;
     }
