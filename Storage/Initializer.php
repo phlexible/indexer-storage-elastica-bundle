@@ -100,15 +100,15 @@ class Initializer
 
                 if ($type === 'attachment') {
                     $field['fields'] = array(
-                        "date"           => ["store" => "yes"],
-                        "title"          => ["store" => "yes"],
-                        "name"           => ["store" => "yes"],
-                        "author"         => ["store" => "yes"],
-                        "keywords"       => ["store" => "yes"],
-                        "content_type"   => ["store" => "yes"],
-                        "content_length" => ["store" => "yes"],
-                        "language"       => ["store" => "yes"],
-                        $name            => ["store" => "yes"],
+                        'date'           => ['store' => 'yes'],
+                        'title'          => ['store' => 'yes'],
+                        'name'           => ['store' => 'yes'],
+                        'author'         => ['store' => 'yes'],
+                        'keywords'       => ['store' => 'yes'],
+                        'content_type'   => ['store' => 'yes'],
+                        'content_length' => ['store' => 'yes'],
+                        'language'       => ['store' => 'yes'],
+                        //'file'           => ['store' => 'yes'],
                     );
                 } else {
                     if ($index !== null) {
