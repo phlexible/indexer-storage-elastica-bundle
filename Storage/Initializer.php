@@ -12,6 +12,7 @@ use Elastica\Index;
 use Elastica\Type\Mapping;
 use Phlexible\Bundle\IndexerBundle\Indexer\IndexerCollection;
 use Phlexible\Bundle\IndexerBundle\Indexer\IndexerInterface;
+use Phlexible\Bundle\IndexerStorageElasticaBundle\Exception\InvalidArgumentException;
 
 /**
  * Initializer
@@ -42,7 +43,7 @@ class Initializer
 
     /**
      * @return Mapping[]
-     * @throws \Exception
+     * @throws InvalidArgumentException
      */
     public function createMappings()
     {
@@ -128,7 +129,7 @@ class Initializer
                 }
 
                 if (isset($fields[$name]) && $fields[$name] !== $field) {
-                    throw new \Exception("Conflict in field $name");
+                    throw new InvalidArgumentException("Conflict in field $name");
                 }
                 $fields[$name] = $field;
             }
