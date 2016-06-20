@@ -58,7 +58,7 @@ class ElasticaMapper
             $data[$key] = $document->get($key);
         }
 
-        return new ElasticaDocument((string) $document->getIdentity(), $data, $document->getName(), $indexName);
+        return new ElasticaDocument((string) $document->getIdentifier(), $data, $document->getName(), $indexName);
     }
 
     /**
