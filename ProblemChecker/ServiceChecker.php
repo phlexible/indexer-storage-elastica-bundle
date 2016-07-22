@@ -8,7 +8,7 @@
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\ProblemChecker;
 
-use Elastica\Client;
+use Phlexible\Bundle\ElasticaBundle\Elastica\Index;
 use Phlexible\Bundle\ProblemBundle\Entity\Problem;
 use Phlexible\Bundle\ProblemBundle\ProblemChecker\ProblemCheckerInterface;
 
@@ -22,16 +22,16 @@ class ServiceChecker implements ProblemCheckerInterface
     /**
      * Driver object to communicate with solr.
      *
-     * @var Client
+     * @var Index
      */
-    protected $client;
+    private $index;
 
     /**
-     * @param Client $client
+     * @param Index $index
      */
-    public function __construct(Client $client)
+    public function __construct(Index $index)
     {
-        $this->client = $client;
+        $this->index = $index;
     }
 
     /**
@@ -42,10 +42,9 @@ class ServiceChecker implements ProblemCheckerInterface
         $problems = array();
 
         try {
-            $status = $this->client->getStatus();
-            $serverStatus = $status->getServerStatus();
+            $status = $this->index->getStatus();
 
-            if (!isset($serverStatus['status']) || $serverStatus['status'] != 200) {
+            if (!$status->get('index')) {
                 $problem = new Problem();
                 $problem
                     ->setId('indexerstorageelastica_check_not_responding')
@@ -60,11 +59,11 @@ class ServiceChecker implements ProblemCheckerInterface
         } catch (\Exception $e) {
             $problem = new Problem();
             $problem
-                ->setId('indexerstorageelastica_check_exception')
+                ->setId('indexerstorageelastica_status_exception')
                 ->setCheckClass(__CLASS__)
                 ->setIconClass('p-indexerstorageelastica-component-icon')
                 ->setSeverity(Problem::SEVERITY_WARNING)
-                ->setMessage('Error checking elasticsearch server , message: ' . $e->getMessage())
+                ->setMessage('Error getting status of index, message: ' . $e->getMessage())
             ;
             $problems[] = $problem;
         }
