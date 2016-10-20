@@ -15,7 +15,7 @@ use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
- * Indexer storage elastica configuration
+ * Indexer storage elastica configuration.
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
