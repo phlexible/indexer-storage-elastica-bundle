@@ -1,9 +1,12 @@
 <?php
-/**
- * phlexible
+
+/*
+ * This file is part of the phlexible indexer storage elastica package.
  *
- * @copyright 2007-2013 brainbits GmbH (http://www.brainbits.net)
- * @license   proprietary
+ * (c) Stephan Wentz <sw@brainbits.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Tests\Storage;
@@ -47,7 +50,7 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
         $testDocument = new TestDocument();
         $testDocument
             ->setField('firstname')
-            ->setFIeld('lastname');
+            ->setField('lastname');
 
         $this->documentFactory->factory('testType')->willReturn($testDocument);
 
@@ -61,7 +64,7 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
         $document
             ->setField('firstname')
             ->set('firstname', 'testFirstname')
-            ->setFIeld('lastname')
+            ->setField('lastname')
             ->set('lastname', 'testLastname');
 
         $elasticaDocument = $this->mapper->mapDocument($document, 'testIndex');
