@@ -15,7 +15,6 @@ use Elastica\Filter\Ids;
 use Elastica\Filter\MatchAll;
 use Elastica\Index;
 use Elastica\Query as ElasticaQuery;
-use Elastica\Query;
 use Elastica\Result;
 use Elastica\ResultSet;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
@@ -27,7 +26,7 @@ use Phlexible\Bundle\IndexerBundle\Storage\StorageInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
- * Elastica storage
+ * Elastica storage.
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
@@ -102,9 +101,9 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
     {
         $connection = $this->index->getClient()->getConnection();
 
-        return $connection->getHost() .
-            ':' . $connection->getPort() .
-            '/' . $this->index->getName();
+        return $connection->getHost().
+            ':'.$connection->getPort().
+            '/'.$this->index->getName();
     }
 
     /**
@@ -239,7 +238,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
     {
         try {
             $serverStatus = $this->index->getClient()->getStatus()->getServerStatus();
-            $healthy = $serverStatus['status'] == 200;
+            $healthy = $serverStatus['status'] === 200;
         } catch (\Exception $e) {
             $healthy = false;
         }
@@ -261,10 +260,10 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
         try {
             $serverStatus = $this->index->getClient()->getStatus()->getServerStatus();
 
-            if ($serverStatus['status'] == 200) {
+            if ($serverStatus['status'] === 200) {
                 if ($this->index->exists()) {
                 } else {
-                    $errors[] = 'Index ' . $this->index->getName() . ' does not exist.';
+                    $errors[] = 'Index '.$this->index->getName().' does not exist.';
                 }
             } else {
                 $errors[] = 'Elasticsearch server status not ok.';

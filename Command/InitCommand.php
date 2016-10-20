@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Init command
+ * Init command.
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
@@ -47,19 +47,20 @@ class InitCommand extends ContainerAwareCommand
         $config = $initializer->createConfig();
 
         $yaml = new Yaml();
-        $output->writeln('Index ' . current($mappings)->getType()->getIndex()->getName());
+        $output->writeln('Index '.current($mappings)->getType()->getIndex()->getName());
         $output->writeln('  Configuration');
         $output->writeln($this->indent($yaml->dump($config, 3, 2)));
         foreach ($mappings as $mapping) {
-            $output->writeln('  Type ' . $mapping->getType()->getName());
+            $output->writeln('  Type '.$mapping->getType()->getName());
             foreach ($mapping->getProperties() as $field => $value) {
-                $output->writeln('    ' . $field . ': ' . $yaml->dump($value, 0));
+                $output->writeln('    '.$field.': '.$yaml->dump($value, 0));
             }
         }
 
         $initializer->initialize($mappings, $config, $input->getOption('recreate'));
 
         $output->writeln('<info>Storage initialized.</info>');
+
         return 0;
     }
 
@@ -67,8 +68,9 @@ class InitCommand extends ContainerAwareCommand
     {
         $lines = array();
         foreach (explode(PHP_EOL, $s) as $line) {
-            $lines[] = str_repeat(' ', $depth) . $line;
+            $lines[] = str_repeat(' ', $depth).$line;
         }
+
         return rtrim(implode(PHP_EOL, $lines));
     }
 }

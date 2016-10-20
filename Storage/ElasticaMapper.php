@@ -19,7 +19,7 @@ use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
 use Phlexible\Bundle\IndexerBundle\Result\ResultSet;
 
 /**
- * Elastica mapper
+ * Elastica mapper.
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */

@@ -24,7 +24,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Test command
+ * Test command.
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
@@ -80,21 +80,20 @@ class TestCommand extends ContainerAwareCommand
 
         /* @var $result \Elastica\ResultSet */
         foreach ($result as $id => $hit) {
-            echo 'Document ' . $hit->getId() . ': ';
+            echo 'Document '.$hit->getId().': ';
             ld($hit->getData());
         }
 
         foreach ($result->getFacets() as $name => $facet) {
-            echo 'Facet ' . $name . ': ';
+            echo 'Facet '.$name.': ';
             ld($facet);
         }
 
         foreach ($result->getSuggests() as $name => $suggest) {
-            echo 'Suggest ' . $name . ': ';
+            echo 'Suggest '.$name.': ';
             ld($suggest);
         }
 
         return 0;
     }
-
 }

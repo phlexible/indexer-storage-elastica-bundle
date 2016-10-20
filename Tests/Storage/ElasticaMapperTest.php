@@ -11,8 +11,8 @@
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Tests\Storage;
 
-use Elastica\ResultSet as ElasticaResultSet;
 use Elastica\Result as ElasticaResult;
+use Elastica\ResultSet as ElasticaResultSet;
 use Phlexible\Bundle\IndexerBundle\Document\Document;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
 use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper;
@@ -27,7 +27,7 @@ class TestDocument extends Document
 }
 
 /**
- * Elastica mapper test
+ * Elastica mapper test.
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
@@ -55,7 +55,6 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
         $this->documentFactory->factory('testType')->willReturn($testDocument);
 
         $this->mapper = new ElasticaMapper($this->documentFactory->reveal());
-
     }
 
     public function testMapDocument()
@@ -96,8 +95,8 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
                 '_type' => 'testType',
                 '_source' => array(
                     'firstname' => 'testFirstname',
-                    'lastname' => 'testLastname'
-                )
+                    'lastname' => 'testLastname',
+                ),
             )
         );
         $document = $this->mapper->mapResult($elasticaResult);

@@ -18,7 +18,7 @@ use Phlexible\Bundle\IndexerBundle\Indexer\IndexerInterface;
 use Phlexible\Bundle\IndexerStorageElasticaBundle\Exception\InvalidArgumentException;
 
 /**
- * Initializer
+ * Initializer.
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
@@ -46,6 +46,7 @@ class Initializer
 
     /**
      * @return Mapping[]
+     *
      * @throws InvalidArgumentException
      */
     public function createMappings()
@@ -65,12 +66,12 @@ class Initializer
                 'id' => array(
                     'type' => 'string',
                     'index' => 'analyzed',
-                    'store' => true
+                    'store' => true,
                 ),
                 'type' => array(
-                    'type'  => 'string',
+                    'type' => 'string',
                     'index' => 'not_analyzed',
-                    'store' => true
+                    'store' => true,
                 ),
             );
 
@@ -104,14 +105,14 @@ class Initializer
 
                 if ($type === 'attachment') {
                     $field['fields'] = array(
-                        'date'           => ['store' => 'yes'],
-                        'title'          => ['store' => 'yes'],
-                        'name'           => ['store' => 'yes'],
-                        'author'         => ['store' => 'yes'],
-                        'keywords'       => ['store' => 'yes'],
-                        'content_type'   => ['store' => 'yes'],
+                        'date' => ['store' => 'yes'],
+                        'title' => ['store' => 'yes'],
+                        'name' => ['store' => 'yes'],
+                        'author' => ['store' => 'yes'],
+                        'keywords' => ['store' => 'yes'],
+                        'content_type' => ['store' => 'yes'],
                         'content_length' => ['store' => 'yes'],
-                        'language'       => ['store' => 'yes'],
+                        'language' => ['store' => 'yes'],
                         //'file'           => ['store' => 'yes'],
                     );
                 } else {
@@ -163,43 +164,43 @@ class Initializer
             'analysis' => array(
                 'filter' => array(
                     'stemmer' => array(
-                        'type'     => 'stemmer',
+                        'type' => 'stemmer',
                         'language' => 'german',
                     ),
                     'autocompleteFilter' => array(
-                        'type'             => 'shingle',
+                        'type' => 'shingle',
                         'min_shingle_size' => 2,
                         'max_shingle_size' => 5,
                     ),
                     'stopwords' => array(
-                        'type'      => 'stop',
-                        'stopwords' => '_german_'
+                        'type' => 'stop',
+                        'stopwords' => '_german_',
                     ),
                 ),
                 'analyzer' => array(
                     'didYouMean' => array(
-                        'type'        => 'custom',
-                        'tokenizer'   => 'standard',
-                        'filter'      => array('lowercase'),
+                        'type' => 'custom',
+                        'tokenizer' => 'standard',
+                        'filter' => array('lowercase'),
                         'char_filter' => array('html_strip'),
                     ),
                     'autocomplete' => array(
-                        'type'        => 'custom',
-                        'tokenizer'   => 'standard',
-                        'filter'      => array('lowercase', 'autocompleteFilter'),
-                        'char_filter' => array('html_strip')
+                        'type' => 'custom',
+                        'tokenizer' => 'standard',
+                        'filter' => array('lowercase', 'autocompleteFilter'),
+                        'char_filter' => array('html_strip'),
                     ),
                     'lowercase' => array(
-                        'type'        => 'custom',
-                        'tokenizer'   => 'keyword',
-                        'filter'      => array('lowercase'),
-                        'char_filter' => array('html_strip')
+                        'type' => 'custom',
+                        'tokenizer' => 'keyword',
+                        'filter' => array('lowercase'),
+                        'char_filter' => array('html_strip'),
                     ),
                     'default' => array(
-                        'type'        => 'custom',
-                        'tokenizer'   => 'standard',
-                        'filter'      => array('lowercase', 'stopwords', 'stemmer'),
-                        'char_filter' => array('html_strip')
+                        'type' => 'custom',
+                        'tokenizer' => 'standard',
+                        'filter' => array('lowercase', 'stopwords', 'stemmer'),
+                        'char_filter' => array('html_strip'),
                     ),
                 ),
             ),
@@ -207,6 +208,7 @@ class Initializer
 
         return $config;
     }
+
     /**
      * @param Mapping[] $mappings
      * @param array     $config

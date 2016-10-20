@@ -16,7 +16,7 @@ use Phlexible\Bundle\ProblemBundle\Entity\Problem;
 use Phlexible\Bundle\ProblemBundle\ProblemChecker\ProblemCheckerInterface;
 
 /**
- * Service check
+ * Service check.
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
@@ -66,7 +66,7 @@ class ServiceChecker implements ProblemCheckerInterface
                 ->setCheckClass(__CLASS__)
                 ->setIconClass('p-indexerstorageelastica-component-icon')
                 ->setSeverity(Problem::SEVERITY_WARNING)
-                ->setMessage('Error getting status of index, message: ' . $e->getMessage())
+                ->setMessage('Error getting status of index, message: '.$e->getMessage())
             ;
             $problems[] = $problem;
         }
