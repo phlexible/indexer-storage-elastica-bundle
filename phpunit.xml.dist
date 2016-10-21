@@ -15,10 +15,11 @@
     <filter>
         <whitelist>
             <directory suffix=".php">.</directory>
+            <exclude>
+                <directory suffix=".php">Tests</directory>
+                <directory suffix=".php">vendor</directory>
+                <file>sami.php</file>
+            </exclude>
         </whitelist>
-        <blacklist>
-            <directory suffix=".php">Tests</directory>
-            <directory suffix=".php">vendor</directory>
-        </blacklist>
     </filter>
 </phpunit>
