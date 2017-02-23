@@ -11,11 +11,14 @@
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Tests\Storage;
 
+use Elastica\Query;
+use Elastica\Response;
 use Elastica\Result as ElasticaResult;
 use Elastica\ResultSet as ElasticaResultSet;
 use Phlexible\Bundle\IndexerBundle\Document\Document;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
 use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper;
+use PHPUnit\Framework\TestCase;
 use Prophecy\Prophecy\ObjectProphecy;
 
 class TestDocument extends Document
@@ -30,8 +33,10 @@ class TestDocument extends Document
  * Elastica mapper test.
  *
  * @author Stephan Wentz <sw@brainbits.net>
+ *
+ * @covers \Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper
  */
-class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
+class ElasticaMapperTest extends TestCase
 {
     /**
      * @var DocumentFactory|ObjectProphecy
@@ -45,7 +50,7 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->documentFactory = $this->prophesize('Phlexible\Bundle\IndexerBundle\Document\DocumentFactory');
+        $this->documentFactory = $this->prophesize(DocumentFactory::class);
 
         $testDocument = new TestDocument();
         $testDocument
@@ -75,8 +80,8 @@ class ElasticaMapperTest extends \PHPUnit_Framework_TestCase
 
     public function testMapResultSet()
     {
-        $response = new \Elastica\Response('{"took":16,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1.0,"hits":[{"_index":"testIndex","_type":"testType","_id":"123","_score":1.0,"_source":{"firstname":"testFirstname","lastname":"testLastname"}}]}}');
-        $query = new \Elastica\Query();
+        $response = new Response('{"took":16,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1.0,"hits":[{"_index":"testIndex","_type":"testType","_id":"123","_score":1.0,"_source":{"firstname":"testFirstname","lastname":"testLastname"}}]}}');
+        $query = new Query();
         $elasticaResultSet = new ElasticaResultSet($response, $query);
 
         $resultSet = $this->mapper->mapResultSet($elasticaResultSet);
