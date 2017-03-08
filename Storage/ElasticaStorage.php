@@ -17,6 +17,7 @@ use Elastica\Index;
 use Elastica\Query as ElasticaQuery;
 use Elastica\Result;
 use Elastica\ResultSet;
+use Phlexible\Bundle\IndexerBundle\Document\DocumentIdentity;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentInterface;
 use Phlexible\Bundle\IndexerBundle\Storage\Flushable;
 use Phlexible\Bundle\IndexerBundle\Storage\Operation\Operations;
@@ -125,6 +126,20 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
     /**
      * {@inheritdoc}
      */
+    public function find(DocumentIdentity $identity)
+    {
+        $result = $this->findByIdentifier($identity);
+
+        if (!$result) {
+            return null;
+        }
+
+        return $this->mapper->mapResult($result);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function addDocument(DocumentInterface $document)
     {
         $response = $this->index->addDocuments(array($this->mapper->mapDocument($document, $this->index->getName())));
@@ -157,7 +172,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function delete($identifier)
     {
-        $result = $this->find($identifier);
+        $result = $this->findByIdentifier($identifier);
 
         if (!$result) {
             return 0;
@@ -173,7 +188,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      */
     public function deleteType($type)
     {
-        $resultSet = $this->findType($type);
+        $resultSet = $this->findAllByType($type);
 
         if (!$resultSet || !$resultSet->count()) {
             return 0;
@@ -280,13 +295,17 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      *
      * @return Result
      */
-    private function find($identifier)
+    private function findByIdentifier($identifier)
     {
         $query = new ElasticaQuery();
         $filter = new Ids();
         $filter->addId((string) $identifier);
         $query->setPostFilter($filter);
         $resultSet = $this->index->search($query);
+
+        if (!count($resultSet)) {
+            return null;
+        }
 
         return $resultSet->current();
     }
@@ -309,7 +328,7 @@ class ElasticaStorage implements StorageInterface, Optimizable, Flushable
      *
      * @return ResultSet
      */
-    private function findType($type)
+    private function findAllByType($type)
     {
         $query = new ElasticaQuery();
         $filter = new MatchAll();

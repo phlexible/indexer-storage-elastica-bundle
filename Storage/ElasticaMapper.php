@@ -83,6 +83,7 @@ class ElasticaMapper
             ->setMaxScore($elasticaResults->getMaxScore())
             ->setTotalHits($elasticaResults->getTotalHits())
             ->setTotalTime($elasticaResults->getTotalTime());
+
         foreach ($elasticaResults->getResults() as $result) {
             $results->add($this->mapResult($result));
         }
