@@ -15,7 +15,6 @@ use Elastica\Query;
 use Elastica\Response;
 use Elastica\Result as ElasticaResult;
 use Elastica\ResultSet as ElasticaResultSet;
-use Phlexible\Bundle\IndexerBundle\Document\Document;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
 use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper;
 use Phlexible\Bundle\IndexerStorageElasticaBundle\Tests\Fixture\TestDocument;
@@ -43,14 +42,13 @@ class ElasticaMapperTest extends TestCase
 
     public function setUp()
     {
-        $this->documentFactory = $this->prophesize(DocumentFactory::class);
-
         $testDocument = new TestDocument();
         $testDocument
             ->setField('firstname')
             ->setField('lastname');
 
-        $this->documentFactory->factory('testType')->willReturn($testDocument);
+        $this->documentFactory = $this->prophesize(DocumentFactory::class);
+        $this->documentFactory->factory('test')->willReturn($testDocument);
 
         $this->mapper = new ElasticaMapper($this->documentFactory->reveal());
     }
@@ -73,7 +71,7 @@ class ElasticaMapperTest extends TestCase
 
     public function testMapResultSet()
     {
-        $response = new Response('{"took":16,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1.0,"hits":[{"_index":"testIndex","_type":"testType","_id":"123","_score":1.0,"_source":{"firstname":"testFirstname","lastname":"testLastname"}}]}}');
+        $response = new Response('{"took":16,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1.0,"hits":[{"_index":"testIndex","_type":"testType","_id":"123","_score":1.0,"_source":{"_document_class":"test","firstname":"testFirstname","lastname":"testLastname"}}]}}');
         $query = new Query();
         $elasticaResultSet = new ElasticaResultSet($response, $query);
 
@@ -90,8 +88,9 @@ class ElasticaMapperTest extends TestCase
     {
         $elasticaResult = new ElasticaResult(
             array(
-                '_type' => 'testType',
+                '_type' => 'test',
                 '_source' => array(
+                    '_document_class' => 'test',
                     'firstname' => 'testFirstname',
                     'lastname' => 'testLastname',
                 ),
@@ -99,6 +98,7 @@ class ElasticaMapperTest extends TestCase
         );
         $document = $this->mapper->mapResult($elasticaResult);
 
+        $this->assertInstanceOf(TestDocument::class, $document);
         $this->assertSame($elasticaResult->getData()['firstname'], $document->get('firstname'));
         $this->assertSame($elasticaResult->getData()['lastname'], $document->get('lastname'));
     }
