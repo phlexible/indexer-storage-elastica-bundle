@@ -18,16 +18,9 @@ use Elastica\ResultSet as ElasticaResultSet;
 use Phlexible\Bundle\IndexerBundle\Document\Document;
 use Phlexible\Bundle\IndexerBundle\Document\DocumentFactory;
 use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\ElasticaMapper;
+use Phlexible\Bundle\IndexerStorageElasticaBundle\Tests\Fixture\TestDocument;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Prophecy\ObjectProphecy;
-
-class TestDocument extends Document
-{
-    public function getName()
-    {
-        return 'testType';
-    }
-}
 
 /**
  * Elastica mapper test.
