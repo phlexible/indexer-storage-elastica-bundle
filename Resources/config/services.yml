@@ -18,6 +18,14 @@ services:
             - "@phlexible_indexer.indexers"
             - "@phlexible_indexer_storage_elastica.index"
 
+    # commands
+    phlexible_indexer_storage_elastica.command.init:
+        class: Phlexible\Bundle\IndexerStorageElasticaBundle\Command\InitCommand
+        arguments:
+            - "@phlexible_indexer_storage_elastica.initializer"
+        tags:
+            - {name: console.command}
+
     # problem checks
     phlexible_indexer_storage_elastica.service_check:
         class: Phlexible\Bundle\IndexerStorageElasticaBundle\ProblemChecker\ServiceChecker

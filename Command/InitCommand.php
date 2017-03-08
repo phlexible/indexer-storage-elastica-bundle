@@ -11,7 +11,8 @@
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\Initializer;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -22,8 +23,23 @@ use Symfony\Component\Yaml\Yaml;
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
-class InitCommand extends ContainerAwareCommand
+class InitCommand extends Command
 {
+    /**
+     * @var Initializer
+     */
+    private $initializer;
+
+    /**
+     * @param Initializer $initializer
+     */
+    public function __construct(Initializer $initializer)
+    {
+        parent::__construct();
+
+        $this->initializer = $initializer;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -41,10 +57,8 @@ class InitCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $initializer = $this->getContainer()->get('phlexible_indexer_storage_elastica.initializer');
-
-        $mappings = $initializer->createMappings();
-        $config = $initializer->createConfig();
+        $mappings = $this->initializer->createMappings();
+        $config = $this->initializer->createConfig();
 
         $yaml = new Yaml();
         $output->writeln('Index '.current($mappings)->getType()->getIndex()->getName());
@@ -57,7 +71,7 @@ class InitCommand extends ContainerAwareCommand
             }
         }
 
-        $initializer->initialize($mappings, $config, $input->getOption('recreate'));
+        $this->initializer->initialize($mappings, $config, $input->getOption('recreate'));
 
         $output->writeln('<info>Storage initialized.</info>');
 

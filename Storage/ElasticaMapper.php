@@ -48,7 +48,6 @@ class ElasticaMapper
     {
         $fields = $document->getFields();
 
-        $data = array();
         foreach ($fields as $key => $config) {
             if (!empty($config[DocumentInterface::CONFIG_READONLY])) {
                 continue;
@@ -99,7 +98,7 @@ class ElasticaMapper
     public function mapResult(ElasticaResult $result)
     {
         $data = $result->getData();
-        $document = $this->documentFactory->factory($result->getType());
+        $document = $this->documentFactory->factory($data['_document_class']);
         foreach ($data as $key => $value) {
             $document->set($key, $value);
         }
