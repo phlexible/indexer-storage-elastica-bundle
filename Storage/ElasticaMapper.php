@@ -47,6 +47,7 @@ class ElasticaMapper
     public function mapDocument(DocumentInterface $document, $indexName)
     {
         $fields = $document->getFields();
+        $data = array();
 
         foreach ($fields as $key => $config) {
             if (!empty($config[DocumentInterface::CONFIG_READONLY])) {
