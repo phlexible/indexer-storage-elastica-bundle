@@ -11,6 +11,7 @@
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Command;
 
+use Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\InitializerInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -43,6 +44,12 @@ class InitCommand extends ContainerAwareCommand
     {
         $initializer = $this->getContainer()->get('phlexible_indexer_storage_elastica.initializer');
 
+        if (!$initializer instanceof InitializerInterface) {
+            $output->writeln("Not an initializer");
+
+            return 1;
+        }
+
         $mappings = $initializer->createMappings();
         $config = $initializer->createConfig();
 
@@ -57,7 +64,7 @@ class InitCommand extends ContainerAwareCommand
             }
         }
 
-        $initializer->initialize($mappings, $config, $input->getOption('recreate'));
+        die;$initializer->initialize($mappings, $config, $input->getOption('recreate'));
 
         $output->writeln('<info>Storage initialized.</info>');
 

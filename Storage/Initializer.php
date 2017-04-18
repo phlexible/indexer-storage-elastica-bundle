@@ -22,7 +22,7 @@ use Phlexible\Bundle\IndexerStorageElasticaBundle\Exception\InvalidArgumentExcep
  *
  * @author Stephan Wentz <sw@brainbits.net>
  */
-class Initializer
+class Initializer implements InitializerInterface
 {
     /**
      * @var IndexerCollection

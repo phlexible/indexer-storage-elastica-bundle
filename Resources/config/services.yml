@@ -12,7 +12,7 @@ services:
         arguments:
             - "@phlexible_indexer.document_factory"
 
-    phlexible_indexer_storage_elastica.initializer:
+    phlexible_indexer_storage_elastica.default_initializer:
         class: Phlexible\Bundle\IndexerStorageElasticaBundle\Storage\Initializer
         arguments:
             - "@phlexible_indexer.indexers"

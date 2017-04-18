@@ -32,6 +32,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('index_name')->defaultValue('phlexible_elastica.index')->end()
+                ->scalarNode('initializer')->defaultValue('phlexible_indexer_storage_elastica.default_initializer')->end()
             ->end();
 
         return $treeBuilder;

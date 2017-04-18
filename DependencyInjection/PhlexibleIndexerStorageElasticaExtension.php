@@ -38,5 +38,6 @@ class PhlexibleIndexerStorageElasticaExtension extends Extension
         $container->setAlias('phlexible_indexer_storage_elastica.index', $config['index_name']);
 
         $container->setAlias('phlexible_indexer.storage.default', 'phlexible_indexer_storage_elastica.elastica_storage');
+        $container->setAlias('phlexible_indexer_storage_elastica.initializer', $config['initializer']);
     }
 }
