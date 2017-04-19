@@ -11,10 +11,7 @@
 
 namespace Phlexible\Bundle\IndexerStorageElasticaBundle\Storage;
 
-use Elastica\Index;
 use Elastica\Type\Mapping;
-use Phlexible\Bundle\IndexerBundle\Indexer\IndexerCollection;
-use Phlexible\Bundle\IndexerBundle\Indexer\IndexerInterface;
 use Phlexible\Bundle\IndexerStorageElasticaBundle\Exception\InvalidArgumentException;
 
 /**

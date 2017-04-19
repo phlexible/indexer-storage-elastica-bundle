@@ -34,6 +34,7 @@ class InitCommand extends ContainerAwareCommand
             ->setName('indexer-storage-elastica:init')
             ->setDescription('Initialize elastica storage.')
             ->addOption('--recreate', null, InputOption::VALUE_NONE)
+            ->addOption('--show', null, InputOption::VALUE_NONE)
         ;
     }
 
@@ -45,7 +46,7 @@ class InitCommand extends ContainerAwareCommand
         $initializer = $this->getContainer()->get('phlexible_indexer_storage_elastica.initializer');
 
         if (!$initializer instanceof InitializerInterface) {
-            $output->writeln("Not an initializer");
+            $output->writeln('<error>Not an initializer</>');
 
             return 1;
         }
@@ -64,9 +65,12 @@ class InitCommand extends ContainerAwareCommand
             }
         }
 
-        die;$initializer->initialize($mappings, $config, $input->getOption('recreate'));
+        if (!$input->getOption('show')) {
+            $initializer->initialize($mappings, $config, $input->getOption('recreate'));
 
-        $output->writeln('<info>Storage initialized.</info>');
+            $output->writeln('<info>Storage initialized.</info>');
+        }
+
 
         return 0;
     }
