@@ -71,7 +71,6 @@ class InitCommand extends ContainerAwareCommand
             $output->writeln('<info>Storage initialized.</info>');
         }
 
-
         return 0;
     }
 
