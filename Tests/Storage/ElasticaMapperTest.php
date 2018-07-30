@@ -73,7 +73,16 @@ class ElasticaMapperTest extends TestCase
     {
         $response = new Response('{"took":16,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1.0,"hits":[{"_index":"testIndex","_type":"testType","_id":"123","_score":1.0,"_source":{"_document_class":"test","firstname":"testFirstname","lastname":"testLastname"}}]}}');
         $query = new Query();
-        $elasticaResultSet = new ElasticaResultSet($response, $query);
+        $elasticaResultSet = new ElasticaResultSet($response, $query, [
+            new ElasticaResult([
+                '_type' => 'test',
+                '_source' => [
+                    '_document_class' => 'test',
+                    'firstname' => 'testFirstname',
+                    'lastname' => 'testLastname',
+                ],
+            ]),
+        ]);
 
         $resultSet = $this->mapper->mapResultSet($elasticaResultSet);
 
@@ -87,14 +96,14 @@ class ElasticaMapperTest extends TestCase
     public function testMapResult()
     {
         $elasticaResult = new ElasticaResult(
-            array(
+            [
                 '_type' => 'test',
-                '_source' => array(
+                '_source' => [
                     '_document_class' => 'test',
                     'firstname' => 'testFirstname',
                     'lastname' => 'testLastname',
-                ),
-            )
+                ],
+            ]
         );
         $document = $this->mapper->mapResult($elasticaResult);
 
